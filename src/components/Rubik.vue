@@ -34,7 +34,8 @@ export default {
       ZLine: null,
       ZLineAd: null,
       stepCount: 0,
-      minCubeIndex: null
+      minCubeIndex: null,
+      speed: 500
     }
   },
 
@@ -182,16 +183,17 @@ export default {
           context.stroke()
           context.fill()
       } else {
-          alert('您的浏览器不支持Canvas无法预览.')
+          alert('浏览器不支持Canvas无法预览.')
       }
       return canvas
     },
 
     randomRotate() {
       if(!this.isRotating) {
+        this.speed = 200
         var stepNum = parseInt(20*Math.random())
-        if(stepNum < 10) {
-          stepNum = 10  // 至少动10步
+        if(stepNum < 20) {
+          stepNum = 20  // 至少动20步
         }
         var funcArr = [this.R,this.U,this.F,this.B,this.L,this.D,this.r,this.u,this.f,this.b,this.l,this.d]
         var stepArr = []
@@ -207,16 +209,19 @@ export default {
       if(no >= arr.length-1) {
         if(next) {
           arr[no](rotateNum,next)
+          this.speed = 500
         }
         else {
           arr[no](rotateNum)
+          this.speed = 500
         }
       }
       else {
+        var rr = this.runMethodAtNo
         arr[no](rotateNum,function() {
           if(no<arr.length-1) {
             no++
-            runMethodAtNo(arr, no, rotateNum, next)
+            rr(arr, no, rotateNum, next)
           }
         })
       }
@@ -368,7 +373,6 @@ export default {
           cube = element
         }
       })
-      console.log(cube)
       return cube
     },
 
@@ -526,8 +530,8 @@ export default {
       event.preventDefault()
     },
 
-    rotateAnimation(elements,direction,currentstamp,startstamp,laststamp) {
-        var totalTime = 500  //转动的总运动时间
+    rotateAnimation(elements,direction,currentstamp,startstamp,laststamp,next) {
+        var totalTime = this.speed  //转动的总运动时间
         var isLastRotate = false  //是否是某次转动最后一次动画
         if(startstamp === 0) {
           startstamp = currentstamp
@@ -598,13 +602,15 @@ export default {
         if(!isLastRotate) {
           var rr = this.rotateAnimation
           window.requestAnimFrame(function(timestamp){
-            rr(elements,direction,timestamp,startstamp,currentstamp)
+            rr(elements,direction,timestamp,startstamp,currentstamp,next)
           })
         }
         else {
           this.isRotating = false
           this.startPoint = null
           this.updateCubeIndex(elements)
+          if(next)
+            next()
         }
     },
 
@@ -626,7 +632,6 @@ export default {
 
     //根据方向获得运动元素
     getBoxs(target,direction){
-      console.log(target)
       var targetId = 0
       if(target.object != null)
         targetId = target.object.cubeIndex
