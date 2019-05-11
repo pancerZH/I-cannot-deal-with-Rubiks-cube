@@ -12,6 +12,7 @@
   "dependencies": {
     "three": "^0.104.0",
     "three-orbitcontrols-ts": "^0.1.2",
+    "three-rounded-box": "^0.1.1",
     "vue": "^2.5.2"
   },
   "devDependencies": {

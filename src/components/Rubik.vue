@@ -3,8 +3,6 @@
 </template>
 
 <script>
-import { RoundedBoxGeometry } from '../utils/plugins/RoundedBoxGeometry.js'
-import { RoundedPlaneGeometry } from '../utils/plugins/RoundedPlaneGeometry.js'
 import { OrbitControls } from 'three-orbitcontrols-ts'
 
 export default {
@@ -56,14 +54,14 @@ export default {
       this.mouse = new THREE.Vector2()  // 储存鼠标坐标
 
       this.cubeParams = {
-          x:0,
-          y:0,
-          z:0,
-          num:3,
-          len:50,
-          colors:['rgba(255,193,37,1)','rgba(0,191,255,1)',
-                  'rgba(50,205,50,1)','rgba(178,34,34,1)',
-                  'rgba(255,255,0,1)','rgba(255,255,255,1)']
+        x:0,
+        y:0,
+        z:0,
+        num:3,
+        len:50,
+        colors:['rgba(236, 56, 35, 1)','rgba(252, 236, 71, 1)',
+                'rgba(252, 138, 10, 1)','rgba(101, 157, 44, 1)',
+                'rgba(252, 244, 252, 1)','rgba(56, 148, 173, 1)']
       }
 
       window.requestAnimFrame = (function() {
@@ -79,6 +77,7 @@ export default {
       this.initScene()
       this.initLight()
       this.initObj()
+      this.initCord()
       this.render()
 
       //监听鼠标事件
@@ -90,6 +89,10 @@ export default {
       this.renderer.domElement.addEventListener('touchstart', this.startCube, false)
       this.renderer.domElement.addEventListener('touchmove', this.moveCube, false)
       this.renderer.domElement.addEventListener('touchend', this.stopCube, false)
+
+      // 控制视角
+      this.controller = new OrbitControls(this.camera, this.renderer.domElement)
+      this.controller.target = new THREE.Vector3(0, 0, 0);
     },
 
     initThree() {
@@ -105,13 +108,9 @@ export default {
 
     initCamera() {
       this.camera = new THREE.PerspectiveCamera(45, this.width / this.height, 1, 1000)
-      this.camera.position.set(200, 400, 600)
+      this.camera.position.set(0, 0, 600)
       this.camera.up.set(0, 1, 0)
       this.camera.lookAt(this.originPoint)
-
-      // 控制视角
-      this.controller = new OrbitControls(this.camera, this.renderer.domElement)
-      this.controller.target = this.originPoint
     },
 
     initScene() {
@@ -119,7 +118,7 @@ export default {
     },
 
     initLight() {
-      this.light = new THREE.AmbientLight(0xfefefe)
+      this.light = new THREE.AmbientLight(0x404040, 5)
 			this.scene.add(this.light)
     },
 
@@ -139,7 +138,7 @@ export default {
       var cubes = []
       for (var i = 0; i < num; i++) {
           for (var j = 0; j < num * num; j++) {
-              var cubegeo = new THREE.BoxGeometry(len, len, len)
+              var cubegeo = new THREE.BoxGeometry(len, len, len, 2, 5)
               var cube = new THREE.Mesh(cubegeo, materialArr)
               //依次计算各个小方块中心点坐标
               cube.position.x = (leftUpX + len / 2) + (j % num) * len
@@ -159,18 +158,56 @@ export default {
         //画一个宽高都是256的黑色正方形
           context.fillStyle = 'rgba(0,0,0,1)'
           context.fillRect(0, 0, 256, 256)
-          //在内部用某颜色的16px宽的线再画一个宽高为224的圆角正方形并用颜色填充
-          context.rect(16, 16, 224, 224)
-          context.lineJoin = 'round'
+          // 绘制圆角矩形
+          var x = 16
+          var y = 16
+          var h = 224
+          var w = 224
+          var r = 32
+          context.beginPath()
+          context.moveTo(x + r, y)
+          context.arcTo(x + w, y, x + w, y + h, r)
+          context.arcTo(x + w, y + h, x, y + h, r)
+          context.arcTo(x, y + h, x, y, r)
+          context.arcTo(x, y, x + w, y, r)
+          context.closePath();
           context.lineWidth = 16
+          context.imageSmoothingQuality = 'high'
           context.fillStyle = rgbaColor
           context.strokeStyle = rgbaColor
           context.stroke()
           context.fill()
       } else {
-          alert('您的浏览器不支持Canvas无法预览.\n')
+          alert('您的浏览器不支持Canvas无法预览.')
       }
       return canvas
+    },
+
+    initCord() {
+      var xmat = new THREE.LineBasicMaterial({ color: 'red' })
+      var xgeo = new THREE.Geometry()
+      xgeo.vertices.push(
+              new THREE.Vector3(0, 0, 0),
+              new THREE.Vector3(300, 0, 0)
+      )
+      var xline = new THREE.Line(xgeo, xmat)
+      this.scene.add(xline)
+      var ymat = new THREE.LineBasicMaterial({ color: 'blue' })
+      var ygeo = new THREE.Geometry()
+      ygeo.vertices.push(
+              new THREE.Vector3(0, 0, 0),
+              new THREE.Vector3(0, 300, 0)
+      )
+      var yline = new THREE.Line(ygeo, ymat)
+      this.scene.add(yline)
+      var zmat = new THREE.LineBasicMaterial({ color: 'green' })
+      var zgeo = new THREE.Geometry()
+      zgeo.vertices.push(
+              new THREE.Vector3(0, 0, 0),
+              new THREE.Vector3(0, 0, 300)
+      )
+      var zline = new THREE.Line(zgeo, zmat)
+      this.scene.add(zline)
     },
 
     initObj() {
@@ -187,16 +224,17 @@ export default {
         this.scene.add(element)
       })
 
+      //透明正方体
       var cubegeo = new THREE.BoxGeometry(150,150,150)
       var hex = 0x000000
       for ( var i = 0; i < cubegeo.faces.length; i += 2 ) {
-          cubegeo.faces[ i ].color.setHex( hex )
-          cubegeo.faces[ i + 1 ].color.setHex( hex )
+          cubegeo.faces[ i ].color.setHex(hex)
+          cubegeo.faces[ i + 1 ].color.setHex(hex)
       }
       var cubemat = new THREE.MeshBasicMaterial({vertexColors: THREE.FaceColors,opacity: 0, transparent: true})
-      var cube = new THREE.Mesh( cubegeo, cubemat )
+      var cube = new THREE.Mesh(cubegeo, cubemat)
       cube.cubeType = 'coverCube'
-      this.scene.add( cube )
+      this.scene.add(cube)
     },
 
     render() {
@@ -243,35 +281,35 @@ export default {
 
     //滑动操作魔方
     moveCube(event) {
-        this.getIntersects(event)
-        if(this.intersect) {
-            if(!this.isRotating && this.startPoint) {
-              //魔方没有进行转动且满足进行转动的条件
-              this.movePoint = this.intersect.point
-              if(!this.movePoint.equals(this.startPoint)) {
-                //和起始点不一样则意味着可以得到转动向量了
-                this.isRotating = true  //转动标识置为true
-                var sub = this.movePoint.sub(this.startPoint)  //计算转动向量
-                var direction = this.getDirection(sub)  //获得方向
-                var elements = this.getBoxs(this.intersect, direction)
-                var startTime = new Date().getTime()
-                var rr = this.rotateAnimation
-                window.requestAnimFrame(function(timestamp) {
-                  rr(elements,direction,timestamp,0)
-                })
-              }
-            }
+      this.getIntersects(event)
+      if(this.intersect) {
+        if(!this.isRotating && this.startPoint) {
+          //魔方没有进行转动且满足进行转动的条件
+          this.movePoint = this.intersect.point
+          if(!this.movePoint.equals(this.startPoint)) {
+            //和起始点不一样则意味着可以得到转动向量了
+            this.isRotating = true  //转动标识置为true
+            var sub = this.movePoint.sub(this.startPoint)  //计算转动向量
+            var direction = this.getDirection(sub)  //获得方向
+            var elements = this.getBoxs(this.intersect, direction)
+            var startTime = new Date().getTime()
+            var rr = this.rotateAnimation
+            window.requestAnimFrame(function(timestamp) {
+              rr(elements,direction,timestamp,0)
+            })
+          }
         }
-        event.preventDefault()
+      }
+      event.preventDefault()
     },
 
     rotateAnimation(elements,direction,currentstamp,startstamp,laststamp) {
         var totalTime = 500  //转动的总运动时间
-        if(startstamp === 0){
+        if(startstamp === 0) {
           startstamp = currentstamp
           laststamp = currentstamp
         }
-        if(currentstamp-startstamp >= totalTime){
+        if(currentstamp-startstamp >= totalTime) {
           currentstamp = startstamp+totalTime
           this.isRotating = false
           this.startPoint = null
@@ -335,7 +373,7 @@ export default {
           default:
             break
         }
-        if(currentstamp-startstamp<totalTime){
+        if(currentstamp-startstamp < totalTime) {
           var rr = this.rotateAnimation
           window.requestAnimFrame(function(timestamp){
             rr(elements,direction,timestamp,startstamp,currentstamp)
@@ -349,9 +387,9 @@ export default {
         var temp1 = elements[i]
         for(var j=0;j<this.initStatus.length;j++) {
           var temp2 = this.initStatus[j]
-          if( Math.abs(temp1.position.x - temp2.x)<=this.cubeParams.len/2 && 
-              Math.abs(temp1.position.y - temp2.y)<=this.cubeParams.len/2 && 
-              Math.abs(temp1.position.z - temp2.z)<=this.cubeParams.len/2 ){
+          if( Math.abs(temp1.position.x - temp2.x) <= this.cubeParams.len/2 && 
+              Math.abs(temp1.position.y - temp2.y) <= this.cubeParams.len/2 && 
+              Math.abs(temp1.position.z - temp2.z) <= this.cubeParams.len/2 ) {
               temp1.cubeIndex = temp2.cubeIndex
               break
           }
@@ -441,7 +479,6 @@ export default {
       switch(minAngle){
         case xAngle:
           direction = 0  //向x轴正方向旋转90度（还要区分是绕z轴还是绕y轴）
-          console.log('向x轴正方向旋转90度')
           if(this.normalize.equals(this.yLine)) {
             direction = direction+0.1  //绕z轴顺时针
           }
@@ -456,7 +493,6 @@ export default {
           }
           break
         case xAngleAd:
-          console.log('向x轴反方向旋转90度')
           direction = 1  //向x轴反方向旋转90度
           if(this.normalize.equals(this.yLine)) {
             direction = direction+0.1  //绕z轴逆时针
@@ -472,7 +508,6 @@ export default {
           }
           break
         case yAngle:
-          console.log('向y轴正方向旋转90度')
           direction = 2  //向y轴正方向旋转90度
           if(this.normalize.equals(this.zLine)) {
             direction = direction+0.1  //绕x轴逆时针
@@ -488,7 +523,6 @@ export default {
           }
           break
         case yAngleAd:
-          console.log('向y轴反方向旋转90度')
           direction = 3  //向y轴反方向旋转90度
           if(this.normalize.equals(this.zLine)) {
             direction = direction+0.1  //绕x轴顺时针
@@ -504,7 +538,6 @@ export default {
           }
           break
         case zAngle:
-          console.log('向z轴正方向旋转90度')
           direction = 4  //向z轴正方向旋转90度
           if(this.normalize.equals(this.yLine)) {
             direction = direction+0.1  //绕x轴顺时针
@@ -520,7 +553,6 @@ export default {
           }
           break
         case zAngleAd:
-          console.log('向z轴反方向旋转90度')
           direction = 5  //向z轴反方向旋转90度
           if(this.normalize.equals(this.yLine)) {
             direction = direction+0.1  //绕x轴逆时针
@@ -587,6 +619,9 @@ export default {
             }
             else {
               this.intersect = intersects[0]
+              console.log(this.intersect)
+              console.log(this.mouse.x)
+              console.log(this.mouse.y)
               this.normalize = intersects[1].face.normal
             }
           }
