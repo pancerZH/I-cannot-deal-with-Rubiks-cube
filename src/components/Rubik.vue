@@ -27,12 +27,14 @@ export default {
       startPoint: null,  // 触发点
       movePoint: null,
       initStatus: [],  // 魔方初始状态
-      xLine: null,  // x轴正方向
-      xLineAd: null,  // x轴负方向
-      yLine: null,
-      yLineAd: null,
-      zLine: null,
-      zLineAd: null
+      XLine: null,  // x轴正方向
+      XLineAd: null,  // x轴负方向
+      YLine: null,
+      YLineAd: null,
+      ZLine: null,
+      ZLineAd: null,
+      stepCount: 0,
+      minCubeIndex: null
     }
   },
 
@@ -43,12 +45,12 @@ export default {
   methods: {
     init() {
       this.originPoint = new THREE.Vector3(0, 0, 0)  //原点
-      this.xLine = new THREE.Vector3( 1, 0, 0 )
-      this.xLineAd = new THREE.Vector3( -1, 0, 0 )
-      this.yLine = new THREE.Vector3( 0, 1, 0 )
-      this.yLineAd = new THREE.Vector3( 0, -1, 0 )
-      this.zLine = new THREE.Vector3( 0, 0, 1 )
-      this.zLineAd = new THREE.Vector3( 0, 0, -1 )
+      this.XLine = new THREE.Vector3( 1, 0, 0 )
+      this.XLineAd = new THREE.Vector3( -1, 0, 0 )
+      this.YLine = new THREE.Vector3( 0, 1, 0 )
+      this.YLineAd = new THREE.Vector3( 0, -1, 0 )
+      this.ZLine = new THREE.Vector3( 0, 0, 1 )
+      this.ZLineAd = new THREE.Vector3( 0, 0, -1 )
 
       this.raycaster = new THREE.Raycaster()  // 光线碰撞传感器
       this.mouse = new THREE.Vector2()  // 储存鼠标坐标
@@ -65,11 +67,11 @@ export default {
       }
 
       window.requestAnimFrame = (function() {
-          return window.requestAnimationFrame ||
-                  window.mozRequestAnimationFrame ||
-                  window.webkitRequestAnimationFrame ||
-                  window.msRequestAnimationFrame ||
-                  window.webkitRequestAnimationFrame
+        return window.requestAnimationFrame ||
+                window.mozRequestAnimationFrame ||
+                window.webkitRequestAnimationFrame ||
+                window.msRequestAnimationFrame ||
+                window.webkitRequestAnimationFrame
       })()
 
       this.initThree()
@@ -93,6 +95,8 @@ export default {
       // 控制视角
       this.controller = new OrbitControls(this.camera, this.renderer.domElement)
       this.controller.target = new THREE.Vector3(0, 0, 0);
+
+      this.randomRotate()
     },
 
     initThree() {
@@ -108,7 +112,7 @@ export default {
 
     initCamera() {
       this.camera = new THREE.PerspectiveCamera(45, this.width / this.height, 1, 1000)
-      this.camera.position.set(0, 0, 600)
+      this.camera.position.set(200, 200, 600)
       this.camera.up.set(0, 1, 0)
       this.camera.lookAt(this.originPoint)
     },
@@ -183,6 +187,221 @@ export default {
       return canvas
     },
 
+    randomRotate() {
+      if(!this.isRotating) {
+        var stepNum = parseInt(20*Math.random())
+        if(stepNum < 10) {
+          stepNum = 10  // 至少动10步
+        }
+        var funcArr = [this.R,this.U,this.F,this.B,this.L,this.D,this.r,this.u,this.f,this.b,this.l,this.d]
+        var stepArr = []
+        for(var i=0; i<stepNum; i++) {
+          var num = parseInt(Math.random()*funcArr.length)
+          stepArr.push(funcArr[num])
+        }
+        this.runMethodAtNo(stepArr, 0, 0)
+      }
+    },
+
+    runMethodAtNo(arr,no,rotateNum,next) {
+      if(no >= arr.length-1) {
+        if(next) {
+          arr[no](rotateNum,next)
+        }
+        else {
+          arr[no](rotateNum)
+        }
+      }
+      else {
+        arr[no](rotateNum,function() {
+          if(no<arr.length-1) {
+            no++
+            runMethodAtNo(arr, no, rotateNum, next)
+          }
+        })
+      }
+    },
+
+    // 魔方基本公式 U、F、L、D、R、u、f、l、d
+    U(rotateNum,next) {
+      this.stepCount++
+      var cube2 = this.getCubeByIndex(2,rotateNum)
+      var zLine = this.rotateAxisByYLine(this.ZLine,rotateNum)
+      var xLineAd = this.rotateAxisByYLine(this.XLineAd,rotateNum)
+      this.normalize = zLine
+      this.rotateMove(cube2,xLineAd,next)
+    },
+    u(rotateNum,next) {
+      this.stepCount++
+      var cube2 = this.getCubeByIndex(2,rotateNum)
+      var xLine = this.rotateAxisByYLine(this.XLine,rotateNum)
+      var zLineAd = this.rotateAxisByYLine(this.ZLineAd,rotateNum)
+      this.normalize = xLine
+      this.rotateMove(cube2,zLineAd,next)
+    },
+    F(rotateNum,next) {
+      this.stepCount++
+      var cube2 = this.getCubeByIndex(2,rotateNum)
+      var xLine = this.rotateAxisByYLine(this.XLine,rotateNum)
+      this.normalize = xLine
+      this.rotateMove(cube2,this.YLineAd,next)
+    },
+    f(rotateNum,next) {
+      this.stepCount++
+      var cube2 = this.getCubeByIndex(2,rotateNum)
+      var xLineAd = this.rotateAxisByYLine(this.XLineAd,rotateNum)
+      this.normalize = this.YLine
+      this.rotateMove(cube2,xLineAd,next)
+    },
+    L(rotateNum,next) {
+      this.stepCount++
+      var cube0 = this.getCubeByIndex(0,rotateNum)
+      var zLine = this.rotateAxisByYLine(this.ZLine,rotateNum)
+      this.normalize = zLine
+      this.rotateMove(cube0,this.YLineAd,next)
+    },
+    l(rotateNum,next) {
+      this.stepCount++
+      var cube0 = this.getCubeByIndex(0,rotateNum)
+      var zLineAd = this.rotateAxisByYLine(this.ZLineAd,rotateNum)
+      this.normalize = this.YLine
+      this.rotateMove(cube0,zLineAd,next)
+    },
+    D(rotateNum,next) {
+      this.stepCount++
+      var cube8 = this.getCubeByIndex(8,rotateNum)
+      var xLine = this.rotateAxisByYLine(this.XLine,rotateNum)
+      var zLineAd = this.rotateAxisByYLine(this.ZLineAd,rotateNum)
+      this.normalize = xLine
+      this.rotateMove(cube8,zLineAd,next)
+    },
+    d(rotateNum,next) {
+      this.stepCount++
+      var cube8 = this.getCubeByIndex(8,rotateNum)
+      var zLine = this.rotateAxisByYLine(this.ZLine,rotateNum)
+      var xLineAd = this.rotateAxisByYLine(this.XLineAd,rotateNum)
+      this.normalize = zLine
+      this.rotateMove(cube8,xLineAd,next)
+    },
+    R(rotateNum,next) {
+      this.stepCount++
+      var cube2 = this.getCubeByIndex(2,rotateNum)
+      var zLineAd = this.rotateAxisByYLine(this.ZLineAd,rotateNum)
+      this.normalize = this.YLine
+      this.rotateMove(cube2,zLineAd,next)
+    },
+    r(rotateNum,next) {
+      this.stepCount++
+      var cube2 = this.getCubeByIndex(2,rotateNum)
+      var zLine = this.rotateAxisByYLine(this.ZLine,rotateNum)
+      this.normalize = zLine
+      this.rotateMove(cube2,this.YLineAd,next)
+    },
+    B(rotateNum,next) {
+      this.stepCount++
+      var cube20 = this.getCubeByIndex(20,rotateNum)
+      var xLine = this.rotateAxisByYLine(this.XLine,rotateNum)
+      this.normalize = xLine
+      this.rotateMove(cube20,this.YLine,next)
+    },
+    b(rotateNum,next) {
+      this.stepCount++
+      var cube20 = this.getCubeByIndex(20,rotateNum)
+      var xLine = this.rotateAxisByYLine(this.XLine,rotateNum)
+      this.normalize = xLine
+      this.rotateMove(cube20,this.YLineAd,next)
+    },
+
+    getCubeByIndex(index,rotateNum) {
+      var tempIndex = index
+      var tempRotateNum = rotateNum
+      while(rotateNum>0) {
+        if(parseInt(index/9)==0) {
+          if(index%3==0) {
+            index += 2
+          }
+          else if(index%3==1) {
+            index += 10
+          }
+          else if(index%3==2) {
+            index += 18
+          }
+        }
+        else if(index%3==2) {
+          if(parseInt(index/9)==0) {
+            index += 18
+          }
+          else if(parseInt(index/9)==1) {
+            index += 8
+          }
+          else if(parseInt(index/9)==2) {
+            index -= 2
+          }
+        }
+        else if(parseInt(index/9)==2) {
+          if(index%3==2) {
+            index -= 2
+          }
+          else if(index%3==1) {
+            index -= 10
+          }
+          else if(index%3==0) {
+            index -= 18
+          }
+        }
+        else if(index%3==0) {
+          if(parseInt(index/9)==2) {
+            index -= 18
+          }
+          else if(parseInt(index/9)==1) {
+            index -= 8
+          }
+          else if(parseInt(index/9)==0) {
+            index += 2
+          }
+        }
+        rotateNum--
+      }
+      var cube
+      this.cubes.forEach(element => {
+        if(element.cubeIndex == index+this.minCubeIndex) {
+          cube = element
+        }
+      })
+      console.log(cube)
+      return cube
+    },
+
+    //根据Y轴旋转向量
+    rotateAxisByYLine(vector, rotateNum) {
+      while(rotateNum > 0) {
+        if(vector.angleTo(this.XLine) == 0) {
+          vector = this.ZLineAd.clone()
+        }
+        else if(vector.angleTo(this.ZLineAd) == 0) {
+          vector = this.XLineAd.clone()
+        }
+        else if(vector.angleTo(this.XLineAd) == 0) {
+          vector = this.ZLine.clone()
+        }
+        else if(vector.angleTo(this.ZLine) == 0) {
+          vector = this.XLine.clone()
+        }
+        rotateNum--
+      }
+      return vector
+    },
+
+    rotateMove(target,vector,next) {
+      this.isRotating = true  //转动标识置为true
+      var direction = this.getDirection(vector)  //获得方向
+      var elements = this.getBoxs(target,direction)
+      var rr = this.rotateAnimation
+        window.requestAnimFrame(function(timestamp) {
+            rr(elements,direction,timestamp,0,null,next)
+        })
+    },
+
     initCord() {
       var xmat = new THREE.LineBasicMaterial({ color: 'red' })
       var xgeo = new THREE.Geometry()
@@ -213,6 +432,7 @@ export default {
     initObj() {
       this.SimpleCube(this.cubeParams.x,this.cubeParams.y,this.cubeParams.z,
       this.cubeParams.num,this.cubeParams.len,this.cubeParams.colors)
+      var ids = []
       this.cubes.forEach(element => {
         this.initStatus.push({
             x:element.position.x,
@@ -221,8 +441,10 @@ export default {
             cubeIndex:element.id
         })
         element.cubeIndex = element.id
+        ids.push(element.id)
         this.scene.add(element)
       })
+      this.minCubeIndex = this.min(ids)
 
       //透明正方体
       var cubegeo = new THREE.BoxGeometry(150,150,150)
@@ -290,13 +512,14 @@ export default {
             //和起始点不一样则意味着可以得到转动向量了
             this.isRotating = true  //转动标识置为true
             var sub = this.movePoint.sub(this.startPoint)  //计算转动向量
-            var direction = this.getDirection(sub)  //获得方向
-            var elements = this.getBoxs(this.intersect, direction)
-            var startTime = new Date().getTime()
-            var rr = this.rotateAnimation
-            window.requestAnimFrame(function(timestamp) {
-              rr(elements,direction,timestamp,0)
-            })
+            // var direction = this.getDirection(sub)  //获得方向
+            // var elements = this.getBoxs(this.intersect, direction)
+            // var startTime = new Date().getTime()
+            // var rr = this.rotateAnimation
+            // window.requestAnimFrame(function(timestamp) {
+            //   rr(elements,direction,timestamp,0)
+            // })
+            this.rotateMove(this.intersect, sub)
           }
         }
       }
@@ -305,15 +528,14 @@ export default {
 
     rotateAnimation(elements,direction,currentstamp,startstamp,laststamp) {
         var totalTime = 500  //转动的总运动时间
+        var isLastRotate = false  //是否是某次转动最后一次动画
         if(startstamp === 0) {
           startstamp = currentstamp
           laststamp = currentstamp
         }
         if(currentstamp-startstamp >= totalTime) {
           currentstamp = startstamp+totalTime
-          this.isRotating = false
-          this.startPoint = null
-          this.updateCubeIndex(elements)
+          isLastRotate = true
         }
         switch(direction) {
           //绕z轴顺时针
@@ -373,11 +595,16 @@ export default {
           default:
             break
         }
-        if(currentstamp-startstamp < totalTime) {
+        if(!isLastRotate) {
           var rr = this.rotateAnimation
           window.requestAnimFrame(function(timestamp){
             rr(elements,direction,timestamp,startstamp,currentstamp)
           })
+        }
+        else {
+          this.isRotating = false
+          this.startPoint = null
+          this.updateCubeIndex(elements)
         }
     },
 
@@ -399,8 +626,13 @@ export default {
 
     //根据方向获得运动元素
     getBoxs(target,direction){
-      var targetId = target.object.cubeIndex
-      var ids = []    
+      console.log(target)
+      var targetId = 0
+      if(target.object != null)
+        targetId = target.object.cubeIndex
+      else
+        targetId = target.cubeIndex
+      var ids = []   
       this.cubes.forEach(cube => {
         ids.push(cube.cubeIndex)
       })
@@ -469,23 +701,23 @@ export default {
     getDirection(vector3){
       var direction
       //判断差向量和x、y、z轴的夹角
-      var xAngle = vector3.angleTo(this.xLine)
-      var xAngleAd = vector3.angleTo(this.xLineAd)
-      var yAngle = vector3.angleTo(this.yLine)
-      var yAngleAd = vector3.angleTo(this.yLineAd)
-      var zAngle = vector3.angleTo(this.zLine)
-      var zAngleAd = vector3.angleTo(this.zLineAd)
+      var xAngle = vector3.angleTo(this.XLine)
+      var xAngleAd = vector3.angleTo(this.XLineAd)
+      var yAngle = vector3.angleTo(this.YLine)
+      var yAngleAd = vector3.angleTo(this.YLineAd)
+      var zAngle = vector3.angleTo(this.ZLine)
+      var zAngleAd = vector3.angleTo(this.ZLineAd)
       var minAngle = this.min([xAngle,xAngleAd,yAngle,yAngleAd,zAngle,zAngleAd])  //最小夹角
       switch(minAngle){
         case xAngle:
           direction = 0  //向x轴正方向旋转90度（还要区分是绕z轴还是绕y轴）
-          if(this.normalize.equals(this.yLine)) {
+          if(this.normalize.equals(this.YLine)) {
             direction = direction+0.1  //绕z轴顺时针
           }
-          else if(this.normalize.equals(this.yLineAd)) {
+          else if(this.normalize.equals(this.YLineAd)) {
             direction = direction+0.2  //绕z轴逆时针
           }
-          else if(this.normalize.equals(this.zLine)) {
+          else if(this.normalize.equals(this.ZLine)) {
             direction = direction+0.3  //绕y轴逆时针
           }
           else {
@@ -494,13 +726,13 @@ export default {
           break
         case xAngleAd:
           direction = 1  //向x轴反方向旋转90度
-          if(this.normalize.equals(this.yLine)) {
+          if(this.normalize.equals(this.YLine)) {
             direction = direction+0.1  //绕z轴逆时针
           }
-          else if(this.normalize.equals(this.yLineAd)) {
+          else if(this.normalize.equals(this.YLineAd)) {
             direction = direction+0.2  //绕z轴顺时针
           }
-          else if(this.normalize.equals(this.zLine)) {
+          else if(this.normalize.equals(this.ZLine)) {
             direction = direction+0.3  //绕y轴顺时针
           }
           else {
@@ -509,13 +741,13 @@ export default {
           break
         case yAngle:
           direction = 2  //向y轴正方向旋转90度
-          if(this.normalize.equals(this.zLine)) {
+          if(this.normalize.equals(this.ZLine)) {
             direction = direction+0.1  //绕x轴逆时针
           }
-          else if(this.normalize.equals(this.zLineAd)) {
+          else if(this.normalize.equals(this.ZLineAd)) {
             direction = direction+0.2  //绕x轴顺时针
           }
-          else if(this.normalize.equals(this.xLine)) {
+          else if(this.normalize.equals(this.XLine)) {
             direction = direction+0.3  //绕z轴逆时针
           }
           else {
@@ -524,13 +756,13 @@ export default {
           break
         case yAngleAd:
           direction = 3  //向y轴反方向旋转90度
-          if(this.normalize.equals(this.zLine)) {
+          if(this.normalize.equals(this.ZLine)) {
             direction = direction+0.1  //绕x轴顺时针
           }
-          else if(this.normalize.equals(this.zLineAd)) {
+          else if(this.normalize.equals(this.ZLineAd)) {
             direction = direction+0.2  //绕x轴逆时针
           }
-          else if(this.normalize.equals(this.xLine)) {
+          else if(this.normalize.equals(this.XLine)) {
             direction = direction+0.3  //绕z轴顺时针
           }
           else {
@@ -539,13 +771,13 @@ export default {
           break
         case zAngle:
           direction = 4  //向z轴正方向旋转90度
-          if(this.normalize.equals(this.yLine)) {
+          if(this.normalize.equals(this.YLine)) {
             direction = direction+0.1  //绕x轴顺时针
           }
-          else if(this.normalize.equals(this.yLineAd)) {
+          else if(this.normalize.equals(this.YLineAd)) {
             direction = direction+0.2  //绕x轴逆时针
           }
-          else if(this.normalize.equals(this.xLine)) {
+          else if(this.normalize.equals(this.XLine)) {
             direction = direction+0.3  //绕y轴顺时针
           }
           else {
@@ -554,13 +786,13 @@ export default {
           break
         case zAngleAd:
           direction = 5  //向z轴反方向旋转90度
-          if(this.normalize.equals(this.yLine)) {
+          if(this.normalize.equals(this.YLine)) {
             direction = direction+0.1  //绕x轴逆时针
           }
-          else if(this.normalize.equals(this.yLineAd)) {
+          else if(this.normalize.equals(this.YLineAd)) {
             direction = direction+0.2  //绕x轴顺时针
           }
-          else if(this.normalize.equals(this.xLine)) {
+          else if(this.normalize.equals(this.XLine)) {
             direction = direction+0.3  //绕y轴逆时针
           }
           else {
@@ -619,9 +851,6 @@ export default {
             }
             else {
               this.intersect = intersects[0]
-              console.log(this.intersect)
-              console.log(this.mouse.x)
-              console.log(this.mouse.y)
               this.normalize = intersects[1].face.normal
             }
           }
