@@ -1,5 +1,12 @@
 <template>
-  <div></div>
+  <div>
+    <el-col :span="6" :offset="18">
+      <el-button type="primary" icon="el-icon-refresh" circle @click="randomRotate" :loading=randomRotateLoading :disabled=(randomRotateLoading||autoRestRunning)></el-button>
+    </el-col>
+    <el-col :span="6" :offset="18">
+      <el-button type="success" icon="el-icon-success" circle @click="autoRest" :loading=autoRestRunning :disabled=(randomRotateLoading||autoRestRunning)></el-button>
+    </el-col>
+  </div>
 </template>
 
 <script>
@@ -35,7 +42,11 @@ export default {
       ZLineAd: null,
       stepCount: 0,
       minCubeIndex: null,
-      speed: 500
+      speed: 500,
+      Cube: null,
+      answer: {},
+      randomRotateLoading: false,
+      autoRestRunning: false
     }
   },
 
@@ -55,6 +66,22 @@ export default {
 
       this.raycaster = new THREE.Raycaster()  // 光线碰撞传感器
       this.mouse = new THREE.Vector2()  // 储存鼠标坐标
+
+      this.Cube = require('cubejs')
+      this.answer = {
+        'R': this.R,
+        'U': this.U,
+        'F': this.F,
+        'B': this.B,
+        'L': this.L,
+        'D': this.D,
+        'r': this.r,
+        'u': this.u,
+        'f': this.f,
+        'b': this.b,
+        'l': this.l,
+        'd': this.d
+      }
 
       this.cubeParams = {
         x:0,
@@ -98,9 +125,6 @@ export default {
       this.controller = new OrbitControls(this.camera, this.renderer.domElement)
       this.controller.target = new THREE.Vector3(0, 0, 0);
 
-      this.randomRotate()
-      await this.sleep(6000)
-      this.autoRest()
     },
 
     sleep(ms) {
@@ -108,8 +132,8 @@ export default {
     },
 
     initThree() {
-      this.width = window.innerWidth
-      this.height = window.innerHeight
+      this.width = window.innerWidth * 0.9
+      this.height = window.innerHeight * 0.9
       this.renderer = new THREE.WebGLRenderer({
           antialias : true
       })
@@ -196,6 +220,7 @@ export default {
     },
 
     randomRotate() {
+      this.randomRotateLoading = true
       if(!this.isRotating) {
         this.speed = 200
         var stepNum = parseInt(20*Math.random())
@@ -216,11 +241,15 @@ export default {
       if(no >= arr.length-1) {
         if(next) {
           arr[no](rotateNum,next)
-          this.speed = 500
+          this.speed = 200
+          this.randomRotateLoading = false
+          this.autoRestRunning = false
         }
         else {
           arr[no](rotateNum)
-          this.speed = 500
+          this.speed = 200
+          this.randomRotateLoading = false
+          this.autoRestRunning = false
         }
       }
       else {
@@ -235,17 +264,16 @@ export default {
     },
 
     autoRest() {
+      this.autoRestRunning = true
       var stepCount = 0
       var startTime = window.performance.now()
-
       console.log('start autoReset')
       console.log('start at:'+startTime)
     
       //调用kociemba算法获得自动还原命名
       var rubik = this.getRubikSequence()
-      const Cube = require('cubejs')
-      const randomCube = Cube.fromString(rubik)
-      Cube.initSolver()
+      const randomCube = this.Cube.fromString(rubik)
+      this.Cube.initSolver()
       var moves = randomCube.solve()
       moves = moves.split(' ')
       
@@ -274,23 +302,9 @@ export default {
 
       //执行
       var funcs = []
-      var answer = {
-        'R': this.R,
-        'U': this.U,
-        'F': this.F,
-        'B': this.B,
-        'L': this.L,
-        'D': this.D,
-        'r': this.r,
-        'u': this.u,
-        'f': this.f,
-        'b': this.b,
-        'l': this.l,
-        'd': this.d
-      }
       this.stepCount = 0
       arr.forEach(move => {
-        var f = answer[move]
+        var f = this.answer[move]
         funcs.push(f)
         this.stepCount++
       })
@@ -1045,30 +1059,30 @@ export default {
     //获取操作焦点以及该焦点所在平面的法向量
     getIntersects(event) {
       //触摸事件和鼠标事件获得坐标的方式有区别
-        if(event.touches) {
-            var touch = event.touches[0]
-            this.mouse.x = (touch.clientX / this.width)*2 - 1
-            this.mouse.y = -(touch.clientY / this.height)*2 + 1
-        }
-        else {
-            this.mouse.x = (event.clientX / this.width)*2 - 1
-            this.mouse.y = -(event.clientY / this.height)*2 + 1
-        }
-        this.raycaster.setFromCamera(this.mouse, this.camera)
-        //Raycaster方式定位选取元素，可能会选取多个，以第一个为准
-        var intersects = this.raycaster.intersectObjects(this.scene.children)
-        if(intersects.length) {
-          try {
-            if(intersects[0].object.cubeType==='coverCube') {
-              this.intersect = intersects[1]
-              this.normalize = intersects[0].face.normal
-            }
-            else {
-              this.intersect = intersects[0]
-              this.normalize = intersects[1].face.normal
-            }
+      if(event.touches) {
+          var touch = event.touches[0]
+          this.mouse.x = (touch.offsetX / this.width)*2 - 1
+          this.mouse.y = -(touch.offsetY / this.height)*2 + 1
+      }
+      else {
+          this.mouse.x = (event.offsetX / this.width)*2 - 1
+          this.mouse.y = -(event.offsetY / this.height)*2 + 1
+      }
+      this.raycaster.setFromCamera(this.mouse, this.camera)
+      //Raycaster方式定位选取元素，可能会选取多个，以第一个为准
+      var intersects = this.raycaster.intersectObjects(this.scene.children)
+      if(intersects.length) {
+        try {
+          if(intersects[0].object.cubeType==='coverCube') {
+            this.intersect = intersects[1]
+            this.normalize = intersects[0].face.normal
           }
-          catch(err) {
+          else {
+            this.intersect = intersects[0]
+            this.normalize = intersects[1].face.normal
+          }
+        }
+        catch(err) {
         }
       }
     }
@@ -1077,5 +1091,7 @@ export default {
 </script>
 
 <style scoped>
-
+.refreash {
+  align-content: left;
+}
 </style>
