@@ -1,10 +1,13 @@
 <template>
   <div>
-    <el-col :span="6" :offset="18">
+    <el-col :span="2" :offset="18">
       <el-button type="primary" icon="el-icon-refresh" circle @click="randomRotate" :loading=randomRotateLoading :disabled=(randomRotateLoading||autoRestRunning)></el-button>
     </el-col>
-    <el-col :span="6" :offset="18">
+    <el-col :span="2">
       <el-button type="success" icon="el-icon-success" circle @click="autoRest" :loading=autoRestRunning :disabled=(randomRotateLoading||autoRestRunning)></el-button>
+    </el-col>
+    <el-col :span="2">
+      <el-button type="success" icon="el-icon-arrow-right" circle @click="autoRestOneStep" :disabled=(randomRotateLoading||autoRestRunning)></el-button>
     </el-col>
   </div>
 </template>
@@ -42,9 +45,11 @@ export default {
       ZLineAd: null,
       stepCount: 0,
       minCubeIndex: null,
-      speed: 500,
+      speed: 200,
       Cube: null,
       answer: {},
+      stepBystep: [],
+      newSolution: true,
       randomRotateLoading: false,
       autoRestRunning: false
     }
@@ -213,7 +218,8 @@ export default {
           context.strokeStyle = rgbaColor
           context.stroke()
           context.fill()
-      } else {
+      } 
+      else {
           alert('浏览器不支持Canvas无法预览.')
       }
       return canvas
@@ -237,17 +243,17 @@ export default {
       }
     },
 
-    runMethodAtNo(arr,no,rotateNum,next) {
+    async runMethodAtNo(arr,no,rotateNum,next) {
       if(no >= arr.length-1) {
         if(next) {
           arr[no](rotateNum,next)
-          this.speed = 200
+          await this.sleep(this.speed)
           this.randomRotateLoading = false
           this.autoRestRunning = false
         }
         else {
           arr[no](rotateNum)
-          this.speed = 200
+          await this.sleep(this.speed)
           this.randomRotateLoading = false
           this.autoRestRunning = false
         }
@@ -273,6 +279,10 @@ export default {
       //调用kociemba算法获得自动还原命名
       var rubik = this.getRubikSequence()
       const randomCube = this.Cube.fromString(rubik)
+      if(randomCube.isSolved()) {
+        this.autoRestRunning = false
+        return
+      }
       this.Cube.initSolver()
       var moves = randomCube.solve()
       moves = moves.split(' ')
@@ -315,6 +325,57 @@ export default {
             console.log('total times:'+(endTime-startTime))
             console.log('total steps:'+count)
       })
+    },
+
+    async autoRestOneStep() {
+      this.autoRestRunning = true
+      if(this.newSolution) {
+        var stepCount = 0
+        this.stepBystep = []
+
+        //调用kociemba算法获得自动还原命名
+        var rubik = this.getRubikSequence()
+        const randomCube = this.Cube.fromString(rubik)
+        if(randomCube.isSolved()) {
+          this.autoRestRunning = false
+          return
+        }
+        this.Cube.initSolver()
+        this.sleep(3000)
+        var moves = randomCube.solve()
+        moves = moves.split(' ')
+        
+        //解析命令
+        var reg1 = /^[a-zA-Z]{1}$/  //纯字母
+        var reg2 = /^[a-zA-Z]{1}[2]{1}$/  //字母+2
+        var reg3 = /^[a-zA-Z]{1}'$/  //字母+单引号
+        moves.forEach(move => {
+          if(reg3.test(move)) {
+            var temp = move.substring(0, 1)
+            this.stepBystep.push(temp.toLowerCase())
+          }
+          else if(reg2.test(move)) {
+            var temp = move.substring(0, 1)
+            this.stepBystep.push(temp)
+            this.stepBystep.push(temp)
+          }
+          else if(reg1.test(move)) {
+            this.stepBystep.push(move)
+          }
+          else {
+            console.log('出错啦')
+          }
+        })
+
+        this.newSolution = false
+      }
+
+      var f = this.answer[this.stepBystep.shift()]
+      if(f) {
+        f(0)
+        await this.sleep(this.speed)
+      }
+      this.autoRestRunning = false
     },
 
     getRubikSequence() {
@@ -452,142 +513,93 @@ export default {
     U(rotateNum,next) {
       this.stepCount++
       var cube2 = this.getCubeByIndex(2,rotateNum)
-      var zLine = this.rotateAxisByYLine(this.ZLine,rotateNum)
-      var xLineAd = this.rotateAxisByYLine(this.XLineAd,rotateNum)
+      var zLine = this.ZLine
+      var xLineAd = this.XLineAd
       this.normalize = zLine
       this.rotateMove(cube2,xLineAd,next)
     },
     u(rotateNum,next) {
       this.stepCount++
       var cube2 = this.getCubeByIndex(2,rotateNum)
-      var xLine = this.rotateAxisByYLine(this.XLine,rotateNum)
-      var zLineAd = this.rotateAxisByYLine(this.ZLineAd,rotateNum)
+      var xLine = this.XLine
+      var zLineAd = this.ZLineAd
       this.normalize = xLine
       this.rotateMove(cube2,zLineAd,next)
     },
     F(rotateNum,next) {
       this.stepCount++
       var cube2 = this.getCubeByIndex(2,rotateNum)
-      var xLine = this.rotateAxisByYLine(this.XLine,rotateNum)
+      var xLine = this.XLine
       this.normalize = xLine
       this.rotateMove(cube2,this.YLineAd,next)
     },
     f(rotateNum,next) {
       this.stepCount++
       var cube2 = this.getCubeByIndex(2,rotateNum)
-      var xLineAd = this.rotateAxisByYLine(this.XLineAd,rotateNum)
+      var xLineAd = this.XLineAd
       this.normalize = this.YLine
       this.rotateMove(cube2,xLineAd,next)
     },
     L(rotateNum,next) {
       this.stepCount++
       var cube0 = this.getCubeByIndex(0,rotateNum)
-      var zLine = this.rotateAxisByYLine(this.ZLine,rotateNum)
+      var zLine = this.ZLine
       this.normalize = zLine
       this.rotateMove(cube0,this.YLineAd,next)
     },
     l(rotateNum,next) {
       this.stepCount++
       var cube0 = this.getCubeByIndex(0,rotateNum)
-      var zLineAd = this.rotateAxisByYLine(this.ZLineAd,rotateNum)
+      var zLineAd = this.ZLineAd
       this.normalize = this.YLine
       this.rotateMove(cube0,zLineAd,next)
     },
     D(rotateNum,next) {
       this.stepCount++
       var cube8 = this.getCubeByIndex(8,rotateNum)
-      var xLine = this.rotateAxisByYLine(this.XLine,rotateNum)
-      var zLineAd = this.rotateAxisByYLine(this.ZLineAd,rotateNum)
+      var xLine = this.XLine
+      var zLineAd = this.ZLineAd
       this.normalize = xLine
       this.rotateMove(cube8,zLineAd,next)
     },
     d(rotateNum,next) {
       this.stepCount++
       var cube8 = this.getCubeByIndex(8,rotateNum)
-      var zLine = this.rotateAxisByYLine(this.ZLine,rotateNum)
-      var xLineAd = this.rotateAxisByYLine(this.XLineAd,rotateNum)
+      var zLine = this.ZLine
+      var xLineAd = this.XLineAd
       this.normalize = zLine
       this.rotateMove(cube8,xLineAd,next)
     },
     R(rotateNum,next) {
       this.stepCount++
       var cube2 = this.getCubeByIndex(2,rotateNum)
-      var zLineAd = this.rotateAxisByYLine(this.ZLineAd,rotateNum)
+      var zLineAd = this.ZLineAd
       this.normalize = this.YLine
       this.rotateMove(cube2,zLineAd,next)
     },
     r(rotateNum,next) {
       this.stepCount++
       var cube2 = this.getCubeByIndex(2,rotateNum)
-      var zLine = this.rotateAxisByYLine(this.ZLine,rotateNum)
+      var zLine = this.ZLine
       this.normalize = zLine
       this.rotateMove(cube2,this.YLineAd,next)
     },
     B(rotateNum,next) {
       this.stepCount++
       var cube20 = this.getCubeByIndex(20,rotateNum)
-      var xLine = this.rotateAxisByYLine(this.XLine,rotateNum)
+      var xLine = this.XLine
       this.normalize = xLine
       this.rotateMove(cube20,this.YLine,next)
     },
     b(rotateNum,next) {
       this.stepCount++
       var cube20 = this.getCubeByIndex(20,rotateNum)
-      var xLine = this.rotateAxisByYLine(this.XLine,rotateNum)
+      var xLine = this.XLine
       this.normalize = xLine
       this.rotateMove(cube20,this.YLineAd,next)
     },
 
     getCubeByIndex(index,rotateNum) {
-      var tempIndex = index
-      var tempRotateNum = rotateNum
-      while(rotateNum>0) {
-        if(parseInt(index/9)==0) {
-          if(index%3==0) {
-            index += 2
-          }
-          else if(index%3==1) {
-            index += 10
-          }
-          else if(index%3==2) {
-            index += 18
-          }
-        }
-        else if(index%3==2) {
-          if(parseInt(index/9)==0) {
-            index += 18
-          }
-          else if(parseInt(index/9)==1) {
-            index += 8
-          }
-          else if(parseInt(index/9)==2) {
-            index -= 2
-          }
-        }
-        else if(parseInt(index/9)==2) {
-          if(index%3==2) {
-            index -= 2
-          }
-          else if(index%3==1) {
-            index -= 10
-          }
-          else if(index%3==0) {
-            index -= 18
-          }
-        }
-        else if(index%3==0) {
-          if(parseInt(index/9)==2) {
-            index -= 18
-          }
-          else if(parseInt(index/9)==1) {
-            index -= 8
-          }
-          else if(parseInt(index/9)==0) {
-            index += 2
-          }
-        }
-        rotateNum--
-      }
       var cube
       this.cubes.forEach(element => {
         if(element.cubeIndex == index+this.minCubeIndex) {
@@ -597,34 +609,14 @@ export default {
       return cube
     },
 
-    //根据Y轴旋转向量
-    rotateAxisByYLine(vector, rotateNum) {
-      while(rotateNum > 0) {
-        if(vector.angleTo(this.XLine) == 0) {
-          vector = this.ZLineAd.clone()
-        }
-        else if(vector.angleTo(this.ZLineAd) == 0) {
-          vector = this.XLineAd.clone()
-        }
-        else if(vector.angleTo(this.XLineAd) == 0) {
-          vector = this.ZLine.clone()
-        }
-        else if(vector.angleTo(this.ZLine) == 0) {
-          vector = this.XLine.clone()
-        }
-        rotateNum--
-      }
-      return vector
-    },
-
-    rotateMove(target,vector,next) {
+    async rotateMove(target,vector,next) {
       this.isRotating = true  //转动标识置为true
       var direction = this.getDirection(vector)  //获得方向
       var elements = this.getBoxs(target,direction)
       var rr = this.rotateAnimation
-        window.requestAnimFrame(function(timestamp) {
-            rr(elements,direction,timestamp,0,null,next)
-        })
+      window.requestAnimFrame(function(timestamp) {
+          rr(elements,direction,timestamp,0,null,next)
+      })
     },
 
     initCord() {
@@ -751,7 +743,7 @@ export default {
       event.preventDefault()
     },
 
-    rotateAnimation(elements,direction,currentstamp,startstamp,laststamp,next) {
+    async rotateAnimation(elements,direction,currentstamp,startstamp,laststamp,next) {
         var totalTime = this.speed  //转动的总运动时间
         var isLastRotate = false  //是否是某次转动最后一次动画
         if(startstamp === 0) {
