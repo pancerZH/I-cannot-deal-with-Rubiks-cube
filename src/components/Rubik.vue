@@ -44,7 +44,7 @@ export default {
   },
   
   methods: {
-    init() {
+    async init() {
       this.originPoint = new THREE.Vector3(0, 0, 0)  //原点
       this.XLine = new THREE.Vector3( 1, 0, 0 )
       this.XLineAd = new THREE.Vector3( -1, 0, 0 )
@@ -64,7 +64,8 @@ export default {
         len:50,
         colors:['rgba(236, 56, 35, 1)','rgba(252, 236, 71, 1)',
                 'rgba(252, 138, 10, 1)','rgba(101, 157, 44, 1)',
-                'rgba(252, 244, 252, 1)','rgba(56, 148, 173, 1)']
+                'rgba(252, 244, 252, 1)','rgba(56, 148, 173, 1)'],
+        sequences:['R','L','U','D','F','B']  //默认序列名
       }
 
       window.requestAnimFrame = (function() {
@@ -98,6 +99,12 @@ export default {
       this.controller.target = new THREE.Vector3(0, 0, 0);
 
       this.randomRotate()
+      await this.sleep(6000)
+      this.autoRest()
+    },
+
+    sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms))
     },
 
     initThree() {
@@ -225,6 +232,188 @@ export default {
           }
         })
       }
+    },
+
+    autoRest() {
+      var stepCount = 0
+      var startTime = window.performance.now()
+
+      console.log('start autoReset')
+      console.log('start at:'+startTime)
+    
+      //调用kociemba算法获得自动还原命名
+      var rubik = this.getRubikSequence()
+      console.log(rubik)
+      // var ptr  = allocate(intArrayFromString(rubik), 'i8', ALLOC_NORMAL);
+      // var p0 = Module._solve(ptr);
+      // var command = Module.UTF8ToString(p0);
+      // console.log(command);
+      // var moves = command.split(' ');
+      
+      // //解析命令
+      // var arr = [];
+      // var reg1 = /^[a-zA-Z]{1}$/;//纯字母
+      // var reg2 = /^[a-zA-Z]{1}[2]{1}$/;//字母+2
+      // var reg3 = /^[a-zA-Z]{1}'$/;//字母+单引号
+      // for(var i=0;i<moves.length;i++){
+      //   var item = moves[i];
+      //   if(reg3.test(item)){
+      //     var temp = item.substring(0,1);
+      //     arr.push(temp.toLowerCase());
+      //   }else if(reg2.test(item)){
+      //     var temp = item.substring(0,1);
+      //     arr.push(temp);
+      //     arr.push(temp)
+      //   }else if(reg1.test(item)){
+      //     arr.push(item);
+      //   }
+      // }
+
+      // //执行
+      // var funcs = [];
+      // for(var i=0;i<arr.length;i++){
+      //   var f = window[arr[i]];
+      //   funcs.push(f);
+      //   stepCount++;
+      // }
+      // runMethodAtNo(funcs,0,0,function(){
+      //   endTime = window.performance.now();
+      //       console.log('end at:'+endTime);
+      //       console.log('total times:'+(endTime-startTime));
+      //       console.log('total steps:'+stepCount);
+      //       console.log('end autoResetV2');
+      // })
+    },
+
+    getRubikSequence() {
+      var seq = []
+
+      //U
+      var us = [18,19,20,9,10,11,0,1,2]
+      us.forEach(u => {
+        var ui = this.getCubeByIndex(u)
+        seq.push(this.getFaceColorByVector(ui, this.YLine))
+      })
+
+      //R
+      var rs = [2,11,20,5,14,23,8,17,26]
+      rs.forEach(r => {
+        var ri = this.getCubeByIndex(r)
+        seq.push(this.getFaceColorByVector(ri, this.XLine))
+      })
+
+      //F
+      var fs = [0,1,2,3,4,5,6,7,8]
+      fs.forEach(f => {
+        var fi = this.getCubeByIndex(f)
+        seq.push(this.getFaceColorByVector(fi, this.ZLine))
+      })
+
+      //D
+      var ds = [6,7,8,15,16,17,24,25,26]
+      ds.forEach(d => {
+        var di = this.getCubeByIndex(d)
+        seq.push(this.getFaceColorByVector(di, this.YLineAd))
+      })
+
+      //L
+      var ls = [18,9,0,21,12,3,24,15,6]
+      ls.forEach(l => {
+        var li = this.getCubeByIndex(l)
+        seq.push(this.getFaceColorByVector(li, this.XLineAd))
+      })
+
+      //B
+      var bs = [20,19,18,23,22,21,26,25,24]
+      bs.forEach(b => {
+        var bi = this.getCubeByIndex(b)
+        seq.push(this.getFaceColorByVector(bi, this.ZLineAd))
+      })
+
+      //  因为并没有限制用户操作不能转动中心，因此默认魔方序列名可能会有变化，这里需要重新设置
+      var cube10 = this.getCubeByIndex(10)
+      var uColorIndex = this.getFaceColorByVector(cube10, this.YLine)
+      this.cubeParams.sequences[uColorIndex] = 'U'
+
+      var cube4 = this.getCubeByIndex(4)
+      var fColorIndex = this.getFaceColorByVector(cube4, this.ZLine)
+      this.cubeParams.sequences[fColorIndex] = 'F'
+
+      var cube14 = this.getCubeByIndex(14)
+      var rColorIndex = this.getFaceColorByVector(cube14, this.XLine)
+      this.cubeParams.sequences[rColorIndex] = 'R'
+
+      var cube12 = this.getCubeByIndex(12)
+      var lColorIndex = this.getFaceColorByVector(cube12, this.XLineAd)
+      this.cubeParams.sequences[lColorIndex] = 'L'
+
+      var cube16 = this.getCubeByIndex(16)
+      var dColorIndex = this.getFaceColorByVector(cube16, this.YLineAd)
+      this.cubeParams.sequences[dColorIndex] = 'D'
+
+      var cube22 = this.getCubeByIndex(22)
+      var bColorIndex = this.getFaceColorByVector(cube22, this.ZLineAd)
+      this.cubeParams.sequences[bColorIndex] = 'B'
+
+        //颜色序号转换为魔方序列
+      var str = ''
+      seq.forEach(s => {
+        str += this.cubeParams.sequences[s]
+      })
+
+      return str
+      
+      //UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB
+      /**
+        |************|
+        |*U1**U2**U3*|
+        |************|
+        |*U4**U5**U6*|
+        |************|
+        |*U7**U8**U9*|
+        |************|
+************|************|************|************
+*L1**L2**L3*|*F1**F2**F3*|*R1**R2**R3*|*B1**B2**B3*
+************|************|************|************
+*L4**L5**L6*|*F4**F5**F6*|*R4**R5**R6*|*B4**B5**B6*
+************|************|************|************
+*L7**L8**L9*|*F7**F8**F9*|*R7**R8**R9*|*B7**B8**B9*
+************|************|************|************
+        |************|
+        |*D1**D2**D3*|
+        |************|
+        |*D4**D5**D6*|
+        |************|
+        |*D7**D8**D9*|
+        |************|
+        */
+    },
+
+    //获取法向量和已知向量方向相同的面的颜色序号
+    getFaceColorByVector(cube, vector) {
+      var materials = cube.material
+      var faces = cube.geometry.faces
+      var normalMatrix = cube.normalMatrix
+      
+      /**
+       * 转换视角时摄像机位置发生了变动，模型开始上表面的法向量是世界坐标系的Y轴，现在依然是世界坐标系的Y轴；
+       * 但是小方块面的法向量乘以其法向量矩阵得到的是视图坐标系中的向量；
+       * 世界坐标系转换成视图坐标系需要乘以视图矩阵的逆反矩阵。
+       */
+      var viewMatrix = new THREE.Matrix4()
+      viewMatrix.lookAt(this.camera.position, this.originPoint, this.camera.up)
+      viewMatrix.getInverse(viewMatrix)
+      var tempVector = vector.clone()
+      tempVector.applyMatrix4(viewMatrix)
+      var angles = []
+
+      faces.forEach(face => {
+        var tempNormal = face.normal.clone()
+        tempNormal.applyMatrix3(normalMatrix)
+        angles.push(tempNormal.angleTo(tempVector))
+      })
+      var minNo = this.min(angles).no
+      return faces[minNo].materialIndex
     },
 
     // 魔方基本公式 U、F、L、D、R、u、f、l、d
@@ -448,7 +637,7 @@ export default {
         ids.push(element.id)
         this.scene.add(element)
       })
-      this.minCubeIndex = this.min(ids)
+      this.minCubeIndex = this.min(ids).value
 
       //透明正方体
       var cubegeo = new THREE.BoxGeometry(150,150,150)
@@ -641,7 +830,7 @@ export default {
       this.cubes.forEach(cube => {
         ids.push(cube.cubeIndex)
       })
-      var minId = this.min(ids)
+      var minId = this.min(ids).value
       targetId = targetId-minId
       var numI = parseInt(targetId/9)
       var numJ = targetId%9
@@ -712,7 +901,7 @@ export default {
       var yAngleAd = vector3.angleTo(this.YLineAd)
       var zAngle = vector3.angleTo(this.ZLine)
       var zAngleAd = vector3.angleTo(this.ZLineAd)
-      var minAngle = this.min([xAngle,xAngleAd,yAngle,yAngleAd,zAngle,zAngleAd])  //最小夹角
+      var minAngle = this.min([xAngle,xAngleAd,yAngle,yAngleAd,zAngle,zAngleAd]).value  //最小夹角
       switch(minAngle){
         case xAngle:
           direction = 0  //向x轴正方向旋转90度（还要区分是绕z轴还是绕y轴）
@@ -812,12 +1001,14 @@ export default {
 
     min(arr){
       var min = arr[0]
-      arr.forEach(element => {
-        if(element < min) {
-          min = element
+      var no = 0
+      for(var i=1; i<arr.length; i++) {
+        if(arr[i]<min) {
+            min = arr[i]
+            no = i
         }
-      })
-      return min
+      }
+      return {no:no, value:min}
     },
 
     //开始操作魔方
