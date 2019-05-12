@@ -243,46 +243,64 @@ export default {
     
       //调用kociemba算法获得自动还原命名
       var rubik = this.getRubikSequence()
-      console.log(rubik)
-      // var ptr  = allocate(intArrayFromString(rubik), 'i8', ALLOC_NORMAL);
-      // var p0 = Module._solve(ptr);
-      // var command = Module.UTF8ToString(p0);
-      // console.log(command);
-      // var moves = command.split(' ');
+      const Cube = require('cubejs')
+      const randomCube = Cube.fromString(rubik)
+      Cube.initSolver()
+      var moves = randomCube.solve()
+      moves = moves.split(' ')
       
-      // //解析命令
-      // var arr = [];
-      // var reg1 = /^[a-zA-Z]{1}$/;//纯字母
-      // var reg2 = /^[a-zA-Z]{1}[2]{1}$/;//字母+2
-      // var reg3 = /^[a-zA-Z]{1}'$/;//字母+单引号
-      // for(var i=0;i<moves.length;i++){
-      //   var item = moves[i];
-      //   if(reg3.test(item)){
-      //     var temp = item.substring(0,1);
-      //     arr.push(temp.toLowerCase());
-      //   }else if(reg2.test(item)){
-      //     var temp = item.substring(0,1);
-      //     arr.push(temp);
-      //     arr.push(temp)
-      //   }else if(reg1.test(item)){
-      //     arr.push(item);
-      //   }
-      // }
+      //解析命令
+      var arr = []
+      var reg1 = /^[a-zA-Z]{1}$/  //纯字母
+      var reg2 = /^[a-zA-Z]{1}[2]{1}$/  //字母+2
+      var reg3 = /^[a-zA-Z]{1}'$/  //字母+单引号
+      moves.forEach(move => {
+        if(reg3.test(move)) {
+          var temp = move.substring(0, 1)
+          arr.push(temp.toLowerCase())
+        }
+        else if(reg2.test(move)) {
+          var temp = move.substring(0, 1)
+          arr.push(temp)
+          arr.push(temp)
+        }
+        else if(reg1.test(move)) {
+          arr.push(move)
+        }
+        else {
+          console.log('出错啦')
+        }
+      })
 
-      // //执行
-      // var funcs = [];
-      // for(var i=0;i<arr.length;i++){
-      //   var f = window[arr[i]];
-      //   funcs.push(f);
-      //   stepCount++;
-      // }
-      // runMethodAtNo(funcs,0,0,function(){
-      //   endTime = window.performance.now();
-      //       console.log('end at:'+endTime);
-      //       console.log('total times:'+(endTime-startTime));
-      //       console.log('total steps:'+stepCount);
-      //       console.log('end autoResetV2');
-      // })
+      //执行
+      var funcs = []
+      var answer = {
+        'R': this.R,
+        'U': this.U,
+        'F': this.F,
+        'B': this.B,
+        'L': this.L,
+        'D': this.D,
+        'r': this.r,
+        'u': this.u,
+        'f': this.f,
+        'b': this.b,
+        'l': this.l,
+        'd': this.d
+      }
+      this.stepCount = 0
+      arr.forEach(move => {
+        var f = answer[move]
+        funcs.push(f)
+        this.stepCount++
+      })
+      var count = this.stepCount
+      this.runMethodAtNo(funcs, 0, 0, function() {
+        var endTime = window.performance.now()
+            console.log('end at:'+endTime)
+            console.log('total times:'+(endTime-startTime))
+            console.log('total steps:'+count)
+      })
     },
 
     getRubikSequence() {
