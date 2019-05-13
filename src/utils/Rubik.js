@@ -26,7 +26,6 @@ var ZLine = null;
 var ZLineAd = null;
 var stepCount = 0;
 var minCubeIndex = null;
-var minCubeIndex = null;
 var speed = 200;
 var Cube = null;
 var cube = null;
@@ -115,8 +114,8 @@ function sleep(ms) {
 }
 
 function initThree() {
-    width = window.innerWidth * 0.9;
-    height = window.innerHeight * 0.9;
+    width = window.innerWidth * 0.95;
+    height = window.innerHeight * 0.8;
     renderer = new THREE.WebGLRenderer({
         antialias: true
     });
@@ -202,6 +201,89 @@ function faces(rgbaColor) {
     return canvas;
 }
 
+export function acceptCubeString(cubeString) {
+    cube = Cube.fromString(cubeString);
+    var moves = Cube.inverse(cube.solve());
+
+    camera = null;
+    scene = null;
+    light = null;
+    cubes = [];
+    renderer = null;
+    width = 0;
+    height = 0;
+    originPoint = null;
+    controller = null;
+    raycaster = null;
+    mouse = null;
+    cubeParams = {};
+    isRotating = false;
+    intersect = null;  // 碰撞光线穿过的元素
+    normalize = null;  // 触发平面法向量
+    startPoint = null;  // 触发点
+    movePoint = null;
+    initStatus = [];
+    XLine = null;  // x轴正方向
+    XLineAd = null;  // x轴负方向
+    YLine = null;
+    YLineAd = null;
+    ZLine = null;
+    ZLineAd = null;
+    stepCount = 0;
+    minCubeIndex = null;
+    answer = {};
+    stepBystep = [];
+    newSolution = true;
+
+    var x = document.getElementsByTagName("canvas")[0];
+    x.parentNode.removeChild(x);
+    init();
+    runOperations(moves);
+}
+
+function runOperations(operations) {
+    console.log(operations)
+    //解析命令
+    operations = operations.split(' ');
+    var arr = [];
+    var reg1 = /^[a-zA-Z]{1}$/;  //纯字母
+    var reg2 = /^[a-zA-Z]{1}[2]{1}$/;  //字母+2
+    var reg3 = /^[a-zA-Z]{1}'$/;  //字母+单引号
+    operations.forEach(move => {
+        if (reg3.test(move)) {
+            var temp = move.substring(0, 1);
+            arr.push(temp.toLowerCase());
+        }
+        else if (reg2.test(move)) {
+            var temp = move.substring(0, 1);
+            arr.push(temp);
+            arr.push(temp);
+        }
+        else if (reg1.test(move)) {
+            arr.push(move);
+        }
+        else {
+            console.log('出错啦');
+        }
+    });
+
+    //执行
+    var funcs = [];
+    stepCount = 0;
+    arr.forEach(move => {
+        var f = answer[move];
+        funcs.push(f);
+        stepCount++;
+    });
+    var count = stepCount;
+    runMethodAtNo(funcs, 0, 0, function () {
+        var endTime = window.performance.now();
+        console.log('end at:' + endTime);
+        console.log('total times:' + (endTime - startTime));
+        console.log('total steps:' + count);
+    });
+}
+
 export function randomRotate() {
     randomRotateLoading = true;
     if(!isRotating) {
@@ -259,46 +341,8 @@ export async function autoRest() {
     }
     // Cube.initSolver();
     var moves = await cube.solve();
-    moves = moves.split(' ');
     
-    //解析命令
-    var arr = [];
-    var reg1 = /^[a-zA-Z]{1}$/;  //纯字母
-    var reg2 = /^[a-zA-Z]{1}[2]{1}$/;  //字母+2
-    var reg3 = /^[a-zA-Z]{1}'$/;  //字母+单引号
-    moves.forEach(move => {
-        if (reg3.test(move)) {
-            var temp = move.substring(0, 1);
-            arr.push(temp.toLowerCase());
-        }
-        else if (reg2.test(move)) {
-            var temp = move.substring(0, 1);
-            arr.push(temp);
-            arr.push(temp);
-        }
-        else if (reg1.test(move)) {
-            arr.push(move);
-        }
-        else {
-            console.log('出错啦');
-        }
-    });
-
-    //执行
-    var funcs = [];
-    stepCount = 0;
-    arr.forEach(move => {
-        var f = answer[move];
-        funcs.push(f);
-        stepCount++;
-    });
-    var count = stepCount;
-    runMethodAtNo(funcs, 0, 0, function () {
-        var endTime = window.performance.now();
-        console.log('end at:' + endTime);
-        console.log('total times:' + (endTime - startTime));
-        console.log('total steps:' + count);
-    });
+    runOperations(moves);
 }
 
 export async function autoRestOneStep() {

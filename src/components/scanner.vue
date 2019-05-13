@@ -1,39 +1,51 @@
 <template>
     <div>
-        <el-row v-for="(num1, index) in [0,1,2]" :key="index+999">
-            <el-col v-for="(num2, index) in [1,2,3]" :key="index*200" :span="2">
-                <div class="ytt-empty" />
-            </el-col>
-            <el-col v-for="num2 in [0,1,2]" :key="3 * num1 + num2 + 888" :span="2">
-                <div class="ytt" @click="changeColor(3 * num1 + num2, $event)" />
-            </el-col>
-        </el-row>
-        <el-row v-for="(num1, index) in [3,4,5]" :key="index*400">
-            <el-col v-for="num2 in [0,1,2]" :key="3 * num1 + num2" :span="2">
-                <div class="ytt" @click="changeColor(3 * num1 + num2, $event)" />
-            </el-col>
-            <el-col v-for="num2 in [0,1,2]" :key="3 * (num1+3) + num2" :span="2">
-                <div class="ytt" @click="changeColor(3 * (num1+3) + num2, $event)" />
-            </el-col>
-            <el-col v-for="num2 in [0,1,2]" :key="3 * (num1+6) + num2" :span="2">
-                <div class="ytt" @click="changeColor(3 * (num1+6) + num2, $event)" />
-            </el-col>
-            <el-col v-for="num2 in [0,1,2]" :key="3 * (num1+9) + num2" :span="2">
-                <div class="ytt" @click="changeColor(3 * (num1+9) + num2, $event)" />
-            </el-col>
-        </el-row>
-        <el-row v-for="(num1, index) in [3,4,5]" :key="index*600+122">
-            <el-col v-for="(num2, index) in [1,2,3]" :key="index*900" :span="2">
-                <div class="ytt-empty" />
-            </el-col>
-            <el-col v-for="num2 in [0,1,2]" :key="3 * (num1+12) + num2" :span="2">
-                <div class="ytt" @click="changeColor(3 * (num1+12) + num2, $event)" />
-            </el-col>
-        </el-row>
+        <el-button type="text" @click="dialogVisible = true">点击打开 Dialog</el-button>
+        <el-dialog
+            title="输入你的魔方排列"
+            :visible.sync="dialogVisible"
+            width="50%">
+            <el-row v-for="(num1, index) in [0,1,2]" :key="index+999">
+                <el-col v-for="(num2, index) in [1,2,3]" :key="index*200" :span="2">
+                    <div class="ytt-empty" />
+                </el-col>
+                <el-col v-for="num2 in [0,1,2]" :key="3 * num1 + num2 + 888" :span="2">
+                    <div class="ytt-orange" @click="changeColor(3 * num1 + num2, $event)" />
+                </el-col>
+            </el-row>
+            <el-row v-for="(num1, index) in [3,4,5]" :key="index*400">
+                <el-col v-for="num2 in [0,1,2]" :key="3 * num1 + num2" :span="2">
+                    <div class="ytt-yellow" @click="changeColor(3 * num1 + num2, $event)" />
+                </el-col>
+                <el-col v-for="num2 in [0,1,2]" :key="3 * (num1+3) + num2" :span="2">
+                    <div class="ytt-white" @click="changeColor(3 * (num1+3) + num2, $event)" />
+                </el-col>
+                <el-col v-for="num2 in [0,1,2]" :key="3 * (num1+6) + num2" :span="2">
+                    <div class="ytt-red" @click="changeColor(3 * (num1+6) + num2, $event)" />
+                </el-col>
+                <el-col v-for="num2 in [0,1,2]" :key="3 * (num1+9) + num2" :span="2">
+                    <div class="ytt-blue" @click="changeColor(3 * (num1+9) + num2, $event)" />
+                </el-col>
+            </el-row>
+            <el-row v-for="(num1, index) in [3,4,5]" :key="index*600+122">
+                <el-col v-for="(num2, index) in [1,2,3]" :key="index*900" :span="2">
+                    <div class="ytt-empty" />
+                </el-col>
+                <el-col v-for="num2 in [0,1,2]" :key="3 * (num1+12) + num2" :span="2">
+                    <div class="ytt-green" @click="changeColor(3 * (num1+12) + num2, $event)" />
+                </el-col>
+            </el-row>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="dialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="submit">确 定</el-button>
+            </span>
+        </el-dialog>
     </div>
 </template>
 
 <script>
+import { MessageBox } from 'element-ui'
+import { acceptCubeString } from '../utils/Rubik.js'
 export default {
     name: 'scanner',
     data() {
@@ -41,7 +53,10 @@ export default {
             positions: [],
             colors: ['rgba(252, 244, 252, 1)', 'rgba(252, 236, 71, 1)',
             'rgba(252, 138, 10, 1)', 'rgba(101, 157, 44, 1)',
-            'rgba(236, 56, 35, 1)', 'rgba(56, 148, 173, 1)']
+            'rgba(236, 56, 35, 1)', 'rgba(56, 148, 173, 1)'],
+            dialogVisible: false,
+            colorName: ['white', 'yellow', 'orange', 'green', 'red', 'blue'],
+            message: ''
         }
     },
 
@@ -52,9 +67,22 @@ export default {
     methods: {
         init() {
             for(var i=0; i<54; i++) {
+                var colorIndex
+                if(i < 9)  // orange
+                    colorIndex = 2
+                else if(i >=9 && i < 18)  // yellow
+                    colorIndex = 1
+                else if(i >= 18 && i < 27)  // white
+                    colorIndex = 0
+                else if(i >= 27 && i < 36)  // red
+                    colorIndex = 4
+                else if(i >= 36 && i < 45)  // blue
+                    colorIndex = 5
+                else  // green
+                    colorIndex = 3
                 var cube = {
                     'index': i,
-                    'colorIndex': 0
+                    'colorIndex': colorIndex
                 }
                 this.positions.push(cube)
             }
@@ -62,21 +90,142 @@ export default {
 
         changeColor(index, event) {
             var cube = this.positions[index]
-            if(cube.colorIndex < this.colors.length)
+            if(cube.colorIndex < this.colors.length-1)
                 cube.colorIndex += 1
             else
                 cube.colorIndex = 0
             event.currentTarget.style.backgroundColor = this.colors[cube.colorIndex]
+        },
+
+        checkColors() {
+            var c = [0, 0, 0, 0, 0, 0]
+            this.positions.forEach(cube => {
+                c[cube.colorIndex]++
+            })
+            var flag = true
+            this.message = '出现错误的颜色有：'
+            for(var i=0; i<c.length; i++) {
+                if(c[i] != 9) {
+                    this.message = this.message + this.colorName[i] + ' '
+                    flag = false
+                }
+            }
+            return flag
+        },
+
+        //UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB
+        /**
+         |************|
+        |*U1**U2**U3*|
+        |************|
+        |*U4**U5**U6*|
+        |************|
+        |*U7**U8**U9*|
+        |************|
+    ************|************|************|************
+    *L1**L2**L3*|*F1**F2**F3*|*R1**R2**R3*|*B1**B2**B3*
+    ************|************|************|************
+    *L4**L5**L6*|*F4**F5**F6*|*R4**R5**R6*|*B4**B5**B6*
+    ************|************|************|************
+    *L7**L8**L9*|*F7**F8**F9*|*R7**R8**R9*|*B7**B8**B9*
+    ************|************|************|************
+        |************|
+        |*D1**D2**D3*|
+        |************|
+        |*D4**D5**D6*|
+        |************|
+        |*D7**D8**D9*|
+        |************|
+        */
+        submit() {
+            if(!this.checkColors()) {
+                MessageBox.alert('错误的魔方排列！' + this.message, '错误提示', {
+                    confirmButtonText: '确定',
+                })
+                return
+            }
+            else {
+                var cubeString = ''
+                var colorDict = {
+                    2: 'U',
+                    4: 'R',
+                    0: 'F',
+                    3: 'D',
+                    1: 'L',
+                    5: 'B'
+                }
+                for(var i=0; i<9; i++) {  // U
+                    var index = this.positions[i].colorIndex
+                    cubeString += colorDict[index]
+                }
+                for(var i=27; i<36; i++) {  // R
+                    var index = this.positions[i].colorIndex
+                    cubeString += colorDict[index]
+                }
+                for(var i=18; i<27; i++) {  // F
+                    var index = this.positions[i].colorIndex
+                    cubeString += colorDict[index]
+                }
+                for(var i=45; i<54; i++) {  // D
+                    var index = this.positions[i].colorIndex
+                    cubeString += colorDict[index]
+                }
+                for(var i=9; i<18; i++) {  // R
+                    var index = this.positions[i].colorIndex
+                    cubeString += colorDict[index]
+                }
+                for(var i=36; i<45; i++) {  // B
+                    var index = this.positions[i].colorIndex
+                    cubeString += colorDict[index]
+                }
+                this.dialogVisible = false
+                acceptCubeString(cubeString) 
+            }
         }
     }
 }
 </script>
 
 <style scoped>
-.ytt {
+.ytt-orange {
+    border: 1px solid #000;
+    padding-bottom: 100%;
+    background-color: rgba(252, 138, 10, 1);
+    height: 0;
+}
+
+.ytt-yellow {
+    border: 1px solid #000;
+    padding-bottom: 100%;
+    background-color: rgba(252, 236, 71, 1);
+    height: 0;
+}
+
+.ytt-white {
     border: 1px solid #000;
     padding-bottom: 100%;
     background-color: rgba(252, 244, 252, 1);
+    height: 0;
+}
+
+.ytt-red {
+    border: 1px solid #000;
+    padding-bottom: 100%;
+    background-color: rgba(236, 56, 35, 1);
+    height: 0;
+}
+
+.ytt-blue {
+    border: 1px solid #000;
+    padding-bottom: 100%;
+    background-color: rgba(56, 148, 173, 1);
+    height: 0;
+}
+
+.ytt-green {
+    border: 1px solid #000;
+    padding-bottom: 100%;
+    background-color: rgba(101, 157, 44, 1);
     height: 0;
 }
 
