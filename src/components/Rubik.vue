@@ -47,6 +47,7 @@ export default {
       minCubeIndex: null,
       speed: 200,
       Cube: null,
+      cube: null,
       answer: {},
       stepBystep: [],
       newSolution: true,
@@ -73,6 +74,7 @@ export default {
       this.mouse = new THREE.Vector2()  // 储存鼠标坐标
 
       this.Cube = require('cubejs')
+      this.cube = new this.Cube()
       this.answer = {
         'R': this.R,
         'U': this.U,
@@ -278,13 +280,13 @@ export default {
     
       //调用kociemba算法获得自动还原命名
       var rubik = this.getRubikSequence()
-      const randomCube = this.Cube.fromString(rubik)
-      if(randomCube.isSolved()) {
+      this.cube = this.Cube.fromString(rubik)
+      if(this.cube.isSolved()) {
         this.autoRestRunning = false
         return
       }
       this.Cube.initSolver()
-      var moves = randomCube.solve()
+      var moves = this.cube.solve()
       moves = moves.split(' ')
       
       //解析命令
@@ -335,14 +337,14 @@ export default {
 
         //调用kociemba算法获得自动还原命名
         var rubik = this.getRubikSequence()
-        const randomCube = this.Cube.fromString(rubik)
-        if(randomCube.isSolved()) {
+        this.cube = this.Cube.fromString(rubik)
+        if(this.cube.isSolved()) {
           this.autoRestRunning = false
           return
         }
         this.Cube.initSolver()
         this.sleep(3000)
-        var moves = randomCube.solve()
+        var moves = this.cube.solve()
         moves = moves.split(' ')
         
         //解析命令
@@ -509,94 +511,78 @@ export default {
       return faces[minNo].materialIndex
     },
 
-    // 魔方基本公式 U、F、L、D、R、u、f、l、d
+    // 魔方基本公式 U、F、L、D、R 、B、u、f、l、d
     U(rotateNum,next) {
       this.stepCount++
       var cube2 = this.getCubeByIndex(2,rotateNum)
-      var zLine = this.ZLine
-      var xLineAd = this.XLineAd
-      this.normalize = zLine
-      this.rotateMove(cube2,xLineAd,next)
+      this.normalize = this.ZLine
+      this.rotateMove(cube2, this.XLineAd, next)
     },
     u(rotateNum,next) {
       this.stepCount++
       var cube2 = this.getCubeByIndex(2,rotateNum)
-      var xLine = this.XLine
-      var zLineAd = this.ZLineAd
-      this.normalize = xLine
-      this.rotateMove(cube2,zLineAd,next)
+      this.normalize = this.XLine
+      this.rotateMove(cube2, this.ZLineAd, next)
     },
     F(rotateNum,next) {
       this.stepCount++
       var cube2 = this.getCubeByIndex(2,rotateNum)
-      var xLine = this.XLine
-      this.normalize = xLine
-      this.rotateMove(cube2,this.YLineAd,next)
+      this.normalize = this.XLine
+      this.rotateMove(cube2, this.YLineAd, next)
     },
     f(rotateNum,next) {
       this.stepCount++
       var cube2 = this.getCubeByIndex(2,rotateNum)
-      var xLineAd = this.XLineAd
       this.normalize = this.YLine
-      this.rotateMove(cube2,xLineAd,next)
+      this.rotateMove(cube2, this.XLineAd, next)
     },
     L(rotateNum,next) {
       this.stepCount++
       var cube0 = this.getCubeByIndex(0,rotateNum)
-      var zLine = this.ZLine
-      this.normalize = zLine
-      this.rotateMove(cube0,this.YLineAd,next)
+      this.normalize = this.ZLine
+      this.rotateMove(cube0, this.YLineAd, next)
     },
     l(rotateNum,next) {
       this.stepCount++
       var cube0 = this.getCubeByIndex(0,rotateNum)
-      var zLineAd = this.ZLineAd
       this.normalize = this.YLine
-      this.rotateMove(cube0,zLineAd,next)
+      this.rotateMove(cube0, this.ZLineAd, next)
     },
     D(rotateNum,next) {
       this.stepCount++
       var cube8 = this.getCubeByIndex(8,rotateNum)
-      var xLine = this.XLine
-      var zLineAd = this.ZLineAd
-      this.normalize = xLine
-      this.rotateMove(cube8,zLineAd,next)
+      this.normalize = this.XLine
+      this.rotateMove(cube8, this.ZLineAd, next)
     },
     d(rotateNum,next) {
       this.stepCount++
       var cube8 = this.getCubeByIndex(8,rotateNum)
-      var zLine = this.ZLine
-      var xLineAd = this.XLineAd
-      this.normalize = zLine
-      this.rotateMove(cube8,xLineAd,next)
+      this.normalize = this.ZLine
+      this.rotateMove(cube8, this.XLineAd, next)
     },
     R(rotateNum,next) {
       this.stepCount++
       var cube2 = this.getCubeByIndex(2,rotateNum)
-      var zLineAd = this.ZLineAd
       this.normalize = this.YLine
-      this.rotateMove(cube2,zLineAd,next)
+      this.rotateMove(cube2, this.ZLineAd, next)
     },
     r(rotateNum,next) {
       this.stepCount++
       var cube2 = this.getCubeByIndex(2,rotateNum)
-      var zLine = this.ZLine
-      this.normalize = zLine
-      this.rotateMove(cube2,this.YLineAd,next)
+      this.normalize = this.ZLine
+      this.rotateMove(cube2, this.YLineAd, next)
     },
     B(rotateNum,next) {
       this.stepCount++
       var cube20 = this.getCubeByIndex(20,rotateNum)
-      var xLine = this.XLine
-      this.normalize = xLine
-      this.rotateMove(cube20,this.YLine,next)
+      this.normalize = this.XLine
+      this.rotateMove(cube20, this.YLine, next)
     },
     b(rotateNum,next) {
       this.stepCount++
       var cube20 = this.getCubeByIndex(20,rotateNum)
-      var xLine = this.XLine
-      this.normalize = xLine
-      this.rotateMove(cube20,this.YLineAd,next)
+      this.normalize = this.XLine
+      this.rotateMove(cube20, this.YLineAd, next)
     },
 
     getCubeByIndex(index,rotateNum) {
@@ -609,14 +595,139 @@ export default {
       return cube
     },
 
-    async rotateMove(target,vector,next) {
+    rotateMove(target,vector,next) {
       this.isRotating = true  //转动标识置为true
       var direction = this.getDirection(vector)  //获得方向
       var elements = this.getBoxs(target,direction)
+      this.findWhichOperation(direction, elements)
       var rr = this.rotateAnimation
       window.requestAnimFrame(function(timestamp) {
           rr(elements,direction,timestamp,0,null,next)
       })
+    },
+
+    findWhichOperation(direction, elements) {
+      var ids = []   
+      this.cubes.forEach(cube => {
+        ids.push(cube.cubeIndex)
+      })
+      var minId = this.min(ids).value
+      var targetId = 0
+      switch(direction) {
+        //绕z轴顺时针
+        case 0.1:
+        case 1.2:
+        case 2.4:
+        case 3.3:
+          elements.forEach(element => {
+            var targetId = element.cubeIndex - minId
+            if(targetId === 2) {
+              this.cube.move("F")
+            }
+            if(targetId === 10) {
+              this.cube.move("S")
+            }
+            if(targetId === 20) {
+              this.cube.move("b")
+            }
+          })
+          break
+        //绕z轴逆时针
+        case 0.2:
+        case 1.1:
+        case 2.3:
+        case 3.4:
+          elements.forEach(element => {
+            targetId = element.cubeIndex - minId
+            if(targetId === 2) {
+              this.cube.move("F'")
+            }
+            if(targetId === 10) {
+              this.cube.move("S'")
+            }
+            if(targetId === 20) {
+              this.cube.move("B")
+            }
+          })
+          break
+        //绕y轴顺时针
+        case 0.4:
+        case 1.3:
+        case 4.3:
+        case 5.4:
+          elements.forEach(element => {
+            targetId = element.cubeIndex - minId
+            if(targetId === 2) {
+              this.cube.move("U")
+            }
+            if(targetId === 5) {
+              this.cube.move("E")
+            }
+            if(targetId === 8) {
+              this.cube.move("D")
+            }
+          })
+          break
+        //绕y轴逆时针
+        case 1.4:
+        case 0.3:
+        case 4.4:
+        case 5.3:
+          elements.forEach(element => {
+            targetId = element.cubeIndex - minId
+            if(targetId === 2) {
+              this.cube.move("U'")
+            }
+            if(targetId === 5) {
+              this.cube.move("E'")
+            }
+            if(targetId === 8) {
+              this.cube.move("D'")
+            }
+          })
+          break
+        //绕x轴顺时针
+        case 2.2:
+        case 3.1:
+        case 4.1:
+        case 5.2:
+          elements.forEach(element => {
+            targetId = element.cubeIndex - minId
+            if(targetId === 2) {
+              this.cube.move("R'")
+            }
+            if(targetId === 4) {
+              this.cube.move("M")
+            }
+            if(targetId === 0) {
+              this.cube.move("L")
+            }
+          })
+          break
+        //绕x轴逆时针
+        case 2.1:
+        case 3.2:
+        case 4.2:
+        case 5.1:
+          elements.forEach(element => {
+            targetId = element.cubeIndex - minId
+            if(targetId === 2) {
+              this.cube.move("R")
+            }
+            if(targetId === 4) {
+              this.cube.move("M'")
+            }
+            if(targetId === 0) {
+              this.cube.move("L'")
+            }
+          })
+          break
+        default:
+          break
+      }
+      if(this.cube.isSolved()) {
+        console.log('胜利')
+      }
     },
 
     initCord() {
@@ -720,7 +831,7 @@ export default {
 
     //滑动操作魔方
     moveCube(event) {
-      this.getIntersects(event)
+      this.getIntersects(event)  // 在里面拿到了法向量
       if(this.intersect) {
         if(!this.isRotating && this.startPoint) {
           //魔方没有进行转动且满足进行转动的条件
@@ -729,13 +840,6 @@ export default {
             //和起始点不一样则意味着可以得到转动向量了
             this.isRotating = true  //转动标识置为true
             var sub = this.movePoint.sub(this.startPoint)  //计算转动向量
-            // var direction = this.getDirection(sub)  //获得方向
-            // var elements = this.getBoxs(this.intersect, direction)
-            // var startTime = new Date().getTime()
-            // var rr = this.rotateAnimation
-            // window.requestAnimFrame(function(timestamp) {
-            //   rr(elements,direction,timestamp,0)
-            // })
             this.rotateMove(this.intersect, sub)
           }
         }
@@ -743,7 +847,7 @@ export default {
       event.preventDefault()
     },
 
-    async rotateAnimation(elements,direction,currentstamp,startstamp,laststamp,next) {
+    rotateAnimation(elements,direction,currentstamp,startstamp,laststamp,next) {
         var totalTime = this.speed  //转动的总运动时间
         var isLastRotate = false  //是否是某次转动最后一次动画
         if(startstamp === 0) {
@@ -754,6 +858,11 @@ export default {
           currentstamp = startstamp+totalTime
           isLastRotate = true
         }
+        var ids = []   
+        this.cubes.forEach(cube => {
+          ids.push(cube.cubeIndex)
+        })
+        var minId = this.min(ids).value
         switch(direction) {
           //绕z轴顺时针
           case 0.1:
