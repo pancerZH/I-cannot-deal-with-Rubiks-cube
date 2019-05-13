@@ -280,7 +280,7 @@ export default {
     
       //调用kociemba算法获得自动还原命名
       var rubik = this.getRubikSequence()
-      this.cube = this.Cube.fromString(rubik)
+      this.cube.init(this.Cube.fromString(rubik))
       if(this.cube.isSolved()) {
         this.autoRestRunning = false
         return
@@ -337,7 +337,7 @@ export default {
 
         //调用kociemba算法获得自动还原命名
         var rubik = this.getRubikSequence()
-        this.cube = this.Cube.fromString(rubik)
+        this.cube.init(this.Cube.fromString(rubik))
         if(this.cube.isSolved()) {
           this.autoRestRunning = false
           return
@@ -376,6 +376,9 @@ export default {
       if(f) {
         f(0)
         await this.sleep(this.speed)
+      }
+      else {
+        this.newSolution = true
       }
       this.autoRestRunning = false
     },
@@ -450,7 +453,7 @@ export default {
       var bColorIndex = this.getFaceColorByVector(cube22, this.ZLineAd)
       this.cubeParams.sequences[bColorIndex] = 'B'
 
-        //颜色序号转换为魔方序列
+      //  颜色序号转换为魔方序列
       var str = ''
       seq.forEach(s => {
         str += this.cubeParams.sequences[s]
@@ -725,9 +728,6 @@ export default {
         default:
           break
       }
-      if(this.cube.isSolved()) {
-        console.log('胜利')
-      }
     },
 
     initCord() {
@@ -839,6 +839,7 @@ export default {
           if(!this.movePoint.equals(this.startPoint)) {
             //和起始点不一样则意味着可以得到转动向量了
             this.isRotating = true  //转动标识置为true
+            this.newSolution = true
             var sub = this.movePoint.sub(this.startPoint)  //计算转动向量
             this.rotateMove(this.intersect, sub)
           }
