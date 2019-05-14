@@ -6,11 +6,17 @@
             :visible.sync="dialogVisible"
             width="50%">
             <el-row v-for="(num1, index) in [0,1,2]" :key="index+999">
-                <el-col v-for="(num2, index) in [1,2,3]" :key="index*200" :span="2">
+                <el-col v-for="(num2, index) in [1,2,3]" :key="index*200+333+num2" :span="2">
                     <div class="ytt-empty" />
                 </el-col>
                 <el-col v-for="num2 in [0,1,2]" :key="3 * num1 + num2 + 888" :span="2">
-                    <div class="ytt-orange" @click="changeColor(3 * num1 + num2, $event)" />
+                    <div class="ytt-orange" @click="changeColor(3 * num1 + num2, $event)"/>
+                </el-col>
+                <el-col v-for="(num2, index) in [1,2,3]" :key="index*300+333" :span="2">
+                    <div class="ytt-empty" />
+                </el-col>
+                <el-col v-for="num2 in [0,1,2]" :key="3 * num1 + num2 + 668" :span="2">
+                    <div :class="'ytt-'+colorName[num2+3*num1]" :style="'border: 1px dashed #000'" v-if="num1!=2" @click="pickColor(num2+3*num1, $event)" name='pick' />
                 </el-col>
             </el-row>
             <el-row v-for="(num1, index) in [3,4,5]" :key="index*400">
@@ -56,7 +62,8 @@ export default {
             'rgba(236, 56, 35, 1)', 'rgba(56, 148, 173, 1)'],
             dialogVisible: false,
             colorName: ['white', 'yellow', 'orange', 'green', 'red', 'blue'],
-            message: ''
+            message: '',
+            currentColor: -1
         }
     },
 
@@ -89,12 +96,22 @@ export default {
         },
 
         changeColor(index, event) {
+            if(this.currentColor === -1) {
+                MessageBox.alert('请先选择颜色！', '错误提示', {
+                    confirmButtonText: '确定',
+                })
+            }
             var cube = this.positions[index]
-            if(cube.colorIndex < this.colors.length-1)
-                cube.colorIndex += 1
-            else
-                cube.colorIndex = 0
+            cube.colorIndex = this.currentColor
             event.currentTarget.style.backgroundColor = this.colors[cube.colorIndex]
+        },
+
+        pickColor(index, event) {
+            document.getElementsByName('pick').forEach(div => {
+                div.style.border= '1px dashed #000'
+            })
+            event.currentTarget.style.border = '1px solid #000'
+            this.currentColor = index
         },
 
         checkColors() {
