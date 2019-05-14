@@ -1,10 +1,10 @@
 <template>
     <div class="scanner">
-        <el-button icon="el-icon-s-grid" type="info" circle @click="dialogVisible = true"></el-button>
+        <el-button icon="el-icon-s-grid" type="info" circle @click="showDialog"></el-button>
         <el-dialog
             title="输入你的魔方排列"
             :visible.sync="dialogVisible"
-            width="50%">
+            :width="width">
             <el-row v-for="(num1, index) in [0,1,2]" :key="index+999">
                 <el-col v-for="(num2, index) in [1,2,3]" :key="index*200+333+num2" :span="2">
                     <div class="ytt-empty" />
@@ -16,7 +16,7 @@
                     <div class="ytt-empty" />
                 </el-col>
                 <el-col v-for="num2 in [0,1,2]" :key="3 * num1 + num2 + 668" :span="2">
-                    <div :class="'ytt-'+colorName[num2+3*num1]" :style="'border: 1px dashed #000'" v-if="num1!=2" @click="pickColor(num2+3*num1, $event)" name='pick' />
+                    <div :class="'ytt-'+colorName[num2+3*num1]" :style="'border: 1px dashed #000'" v-if="num1!=2" @click="pickColor(num2+3*num1, $event)" name='pick' :id='num2+3*num1' />
                 </el-col>
             </el-row>
             <el-row v-for="(num1, index) in [3,4,5]" :key="index*400">
@@ -63,12 +63,15 @@ export default {
             dialogVisible: false,
             colorName: ['white', 'yellow', 'orange', 'green', 'red', 'blue'],
             message: '',
-            currentColor: -1
+            currentColor: -1,
+            width: '50%'
         }
     },
 
     mounted() {
         this.init()
+        if(this._isMobile())
+            this.width = '90%'
     },
 
     methods: {
@@ -93,6 +96,15 @@ export default {
                 }
                 this.positions.push(cube)
             }
+        },
+
+        showDialog() {
+            this.dialogVisible = true
+            this.$nextTick(() => {
+                var div = document.getElementById("0")
+                div.style.border = '1px solid #000'
+                this.currentColor = 0
+            })
         },
 
         changeColor(index, event) {
@@ -198,6 +210,11 @@ export default {
                 this.dialogVisible = false
                 acceptCubeString(cubeString) 
             }
+        },
+
+        _isMobile() {
+        let flag = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)
+        return flag
         }
     }
 }
