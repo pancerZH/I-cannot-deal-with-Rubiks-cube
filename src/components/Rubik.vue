@@ -14,7 +14,7 @@
 
 <script>
 import { OrbitControls } from 'three-orbitcontrols-ts'
-import { init, randomRotate, autoRest, autoRestOneStep, randomRotateLoading, autoRestRunning } from '../utils/Rubik.js'
+import { init, randomRotate, autoRest, autoRestOneStep, randomRotateLoading, autoRestRunning, changeSpeed } from '../utils/Rubik.js'
 import scanner from './scanner'
 
 export default {
@@ -34,12 +34,12 @@ export default {
   },
 
   mounted() {
-    init()
     if(this._isMobile()) {
       this.off = 13
       this.mobile = true
       this.height = '150px'
     }
+    init(this._isMobile())
   },
 
   methods: {
@@ -77,6 +77,12 @@ export default {
     _isMobile() {
       let flag = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)
       return flag
+    }
+  },
+
+  watch: {
+    speed() {
+      changeSpeed(this.speed)
     }
   }
 }

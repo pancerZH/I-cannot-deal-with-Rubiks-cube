@@ -27,15 +27,17 @@ var ZLineAd = null;
 var stepCount = 0;
 var minCubeIndex = null;
 var speed = 200;
+var oldSpeed = 200;
 var Cube = null;
 var cube = null;
 var answer = {};
 var stepBystep = [];
 var newSolution = true;
+var mobile = false;
 export var randomRotateLoading = false;
 export var autoRestRunning = false;
 
-export function init() {
+export function init(is_mobile) {
     originPoint = new THREE.Vector3(0, 0, 0);  //原点
     XLine = new THREE.Vector3(1, 0, 0);
     XLineAd = new THREE.Vector3(-1, 0, 0);
@@ -85,6 +87,9 @@ export function init() {
             window.webkitRequestAnimationFrame
     })();
 
+    if (is_mobile)
+        mobile = true;
+
     initThree();
     initCamera();
     initScene();
@@ -109,13 +114,16 @@ export function init() {
 
 }
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+export function changeSpeed(newSpeed) {
+    oldSpeed = newSpeed;
 }
 
 function initThree() {
     width = window.innerWidth * 0.95;
-    height = window.innerHeight * 0.8;
+    if (mobile)
+        height = window.innerHeight * 0.7;
+    else
+        height = window.innerHeight * 0.8;
     renderer = new THREE.WebGLRenderer({
         antialias: true
     });
@@ -289,6 +297,7 @@ export function randomRotate(newSpeed) {
     randomRotateLoading = true;
     if(!isRotating) {
         speed = newSpeed;
+        oldSpeed = speed;
         var stepNum = parseInt(20 * Math.random());
         if(stepNum < 20) {
           stepNum = 20;  // 至少动20步
@@ -329,6 +338,7 @@ function runMethodAtNo(arr,no,next) {
 export async function autoRest(newSpeed) {
     autoRestRunning = true;
     speed = newSpeed;
+    oldSpeed = speed;
     var startTime = window.performance.now();
     console.log('start autoReset');
     console.log('start at:' + startTime);
@@ -349,6 +359,7 @@ export async function autoRest(newSpeed) {
 export async function autoRestOneStep(newSpeed) {
     autoRestRunning = true;
     speed = newSpeed;
+    oldSpeed = speed;
     if(newSolution) {
         var stepCount = 0;
         stepBystep = [];
@@ -858,6 +869,7 @@ function rotateAroundWorldX(obj,rad) {
   
 //滑动操作魔方
 function moveCube(event) {
+    speed = oldSpeed;
     getIntersects(event);  // 在里面拿到了法向量
     if(intersect) {
       if(!isRotating && startPoint) {
@@ -1187,10 +1199,11 @@ function startCube(event) {
 //  获取操作焦点以及该焦点所在平面的法向量
 function getIntersects(event) {
     //  触摸事件和鼠标事件获得坐标的方式有区别
-    if(event.touches) {
+    if (event.touches) {
+        var offset = document.getElementsByTagName('canvas')[0].offsetTop
         var touch = event.touches[0];
-        mouse.x = (touch.offsetX / width) * 2 - 1;
-        mouse.y = -(touch.offsetY / height) * 2 + 1;
+        mouse.x = (touch.clientX / width) * 2 - 1;
+        mouse.y = -((touch.clientY - offset) / height) * 2 + 1;
     }
     else {
         mouse.x = (event.offsetX / width) * 2 - 1;
