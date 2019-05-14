@@ -1,19 +1,16 @@
 <template>
   <div id="app">
     <Rubik/>
-    <scanner/>
   </div>
 </template>
 
 <script>
 import Rubik from './components/Rubik'
-import scanner from './components/scanner'
 
 export default {
   name: 'App',
   components: {
-    Rubik,
-    scanner
+    Rubik
   }
 }
 </script>

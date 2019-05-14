@@ -1,12 +1,12 @@
 <template>
   <div>
-    <el-col :span="2" :offset="18">
+    <el-col :span="5" :offset="1">
+      <el-slider v-model="speed" :min="100" :max="500" :step="100" :vertical="mobile" :height="height"></el-slider>
+    </el-col>
+    <el-col :span="5" :offset="off">
+      <scanner />
       <el-button type="primary" icon="el-icon-refresh" circle @click="randomRotate" :loading=randomRotateLoading :disabled=(randomRotateLoading||autoRestRunning)></el-button>
-    </el-col>
-    <el-col :span="2">
       <el-button type="success" icon="el-icon-success" circle @click="autoRest" :loading=autoRestRunning :disabled=(randomRotateLoading||autoRestRunning)></el-button>
-    </el-col>
-    <el-col :span="2">
       <el-button type="success" icon="el-icon-arrow-right" circle @click="autoRestOneStep" :disabled=(randomRotateLoading||autoRestRunning)></el-button>
     </el-col>
   </div>
@@ -15,50 +15,68 @@
 <script>
 import { OrbitControls } from 'three-orbitcontrols-ts'
 import { init, randomRotate, autoRest, autoRestOneStep, randomRotateLoading, autoRestRunning } from '../utils/Rubik.js'
+import scanner from './scanner'
 
 export default {
   name: 'Rubik',
+  components: {
+    scanner
+  },
   data () {
     return {
       randomRotateLoading: false,
-      autoRestRunning: false
+      autoRestRunning: false,
+      speed: 200,
+      off: 10,
+      mobile: false,
+      height: ''
     }
   },
 
   mounted() {
     init()
+    if(this._isMobile()) {
+      this.off = 13
+      this.mobile = true
+      this.height = '150px'
+    }
   },
 
   methods: {
     async randomRotate() {
       this.randomRotateLoading = true
-      randomRotate()
+      randomRotate(this.speed)
       while(this.randomRotateLoading) {
-        await this.sleep(500)
+        await this.sleep(this.speed*2)
         this.randomRotateLoading = randomRotateLoading
       }
     },
 
     async autoRest() {
       this.autoRestRunning = true
-      autoRest()
+      autoRest(this.speed)
       while(this.autoRestRunning) {
-        await this.sleep(500)
+        await this.sleep(this.speed*2)
         this.autoRestRunning = autoRestRunning
       }
     },
 
     async autoRestOneStep() {
       this.autoRestRunning = true
-      autoRestOneStep()
+      autoRestOneStep(this.speed)
       while(this.autoRestRunning) {
-        await this.sleep(200)
+        await this.sleep(this.speed*1.5)
         this.autoRestRunning = autoRestRunning
       }
     },
 
     sleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
+    },
+
+    _isMobile() {
+      let flag = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)
+      return flag
     }
   }
 }
@@ -67,5 +85,9 @@ export default {
 <style scoped>
 .refreash {
   align-content: left;
+}
+
+.el-button+.el-button {
+  margin-left: 0
 }
 </style>

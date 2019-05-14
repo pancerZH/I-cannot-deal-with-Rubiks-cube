@@ -90,7 +90,7 @@ export function init() {
     initScene();
     initLight();
     initObj();
-    initCord();
+    // initCord();  // 添加坐标轴
     render();
 
     //监听鼠标事件
@@ -238,6 +238,7 @@ export function acceptCubeString(cubeString) {
     var x = document.getElementsByTagName("canvas")[0];
     x.parentNode.removeChild(x);
     init();
+    speed = 50;
     runOperations(moves);
 }
 
@@ -284,10 +285,10 @@ function runOperations(operations) {
     });
 }
 
-export function randomRotate() {
+export function randomRotate(newSpeed) {
     randomRotateLoading = true;
     if(!isRotating) {
-        speed = 200;
+        speed = newSpeed;
         var stepNum = parseInt(20 * Math.random());
         if(stepNum < 20) {
           stepNum = 20;  // 至少动20步
@@ -325,9 +326,9 @@ function runMethodAtNo(arr,no,next) {
     }
 }
 
-export async function autoRest() {
+export async function autoRest(newSpeed) {
     autoRestRunning = true;
-    var stepCount = 0;
+    speed = newSpeed;
     var startTime = window.performance.now();
     console.log('start autoReset');
     console.log('start at:' + startTime);
@@ -345,8 +346,9 @@ export async function autoRest() {
     runOperations(moves);
 }
 
-export async function autoRestOneStep() {
+export async function autoRestOneStep(newSpeed) {
     autoRestRunning = true;
+    speed = newSpeed;
     if(newSolution) {
         var stepCount = 0;
         stepBystep = [];

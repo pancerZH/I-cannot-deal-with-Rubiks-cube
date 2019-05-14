@@ -1,6 +1,6 @@
 <template>
-    <div>
-        <el-button type="text" @click="dialogVisible = true">点击打开 Dialog</el-button>
+    <div class="scanner">
+        <el-button icon="el-icon-s-grid" type="info" circle @click="dialogVisible = true"></el-button>
         <el-dialog
             title="输入你的魔方排列"
             :visible.sync="dialogVisible"
@@ -249,5 +249,9 @@ export default {
 .ytt-empty {
     padding-bottom: 100%;
     height: 0;
+}
+
+.scanner {
+    display: inline
 }
 </style>
