@@ -13,7 +13,6 @@
 </template>
 
 <script>
-import { OrbitControls } from 'three-orbitcontrols-ts'
 import { init, randomRotate, autoRest, autoRestOneStep, randomRotateLoading, autoRestRunning, changeSpeed } from '../utils/Rubik.js'
 import scanner from './scanner'
 
