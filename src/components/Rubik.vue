@@ -4,7 +4,7 @@
       <el-slider v-model="speed" :min="100" :max="500" :step="100" :vertical="mobile" :height="height"></el-slider>
     </el-col>
     <el-col :span="5" :offset="off">
-      <scanner />
+      <scanner :randomRotate=randomRotateLoading :autoRest=autoRestRunning />
       <el-button type="primary" icon="el-icon-refresh" circle @click="randomRotate" :loading=randomRotateLoading :disabled=(randomRotateLoading||autoRestRunning)></el-button>
       <el-button type="success" icon="el-icon-success" circle @click="autoRest" :loading=autoRestRunning :disabled=(randomRotateLoading||autoRestRunning)></el-button>
       <el-button type="success" icon="el-icon-arrow-right" circle @click="autoRestOneStep" :disabled=(randomRotateLoading||autoRestRunning)></el-button>

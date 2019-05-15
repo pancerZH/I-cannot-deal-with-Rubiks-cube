@@ -1,6 +1,6 @@
 <template>
     <div class="scanner">
-        <el-button icon="el-icon-s-grid" type="info" circle @click="showDialog"></el-button>
+        <el-button icon="el-icon-s-grid" type="info" circle @click="showDialog" :disabled=(randomRotate||autoRest)></el-button>
         <el-dialog
             :visible.sync="dialogVisible"
             :width="width"
@@ -53,6 +53,7 @@
 import { acceptCubeString } from '../utils/Rubik.js'
 export default {
     name: 'scanner',
+    props: ['randomRotate', 'autoRest'],
     data() {
         return  {
             positions: [],
