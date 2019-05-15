@@ -2,9 +2,9 @@
     <div class="scanner">
         <el-button icon="el-icon-s-grid" type="info" circle @click="showDialog"></el-button>
         <el-dialog
-            title="输入你的魔方排列"
             :visible.sync="dialogVisible"
-            :width="width">
+            :width="width"
+            :show-close="false">
             <el-row v-for="(num1, index) in [0,1,2]" :key="index+999">
                 <el-col v-for="(num2, index) in [1,2,3]" :key="index*200+333+num2" :span="2">
                     <div class="ytt-empty" />
@@ -42,15 +42,14 @@
                 </el-col>
             </el-row>
             <span slot="footer" class="dialog-footer">
-                <el-button @click="dialogVisible = false">取 消</el-button>
-                <el-button type="primary" @click="submit">确 定</el-button>
+                <el-button icon="el-icon-close" circle @click="dialogVisible = false" />
+                <el-button type="primary" icon="el-icon-check" circle @click="submit" />
             </span>
         </el-dialog>
     </div>
 </template>
 
 <script>
-import { MessageBox } from 'element-ui'
 import { acceptCubeString } from '../utils/Rubik.js'
 export default {
     name: 'scanner',
@@ -63,7 +62,7 @@ export default {
             dialogVisible: false,
             colorName: ['white', 'yellow', 'orange', 'green', 'red', 'blue'],
             message: '',
-            currentColor: -1,
+            currentColor: 0,
             width: '50%'
         }
     },
@@ -108,11 +107,6 @@ export default {
         },
 
         changeColor(index, event) {
-            if(this.currentColor === -1) {
-                MessageBox.alert('请先选择颜色！', '错误提示', {
-                    confirmButtonText: '确定',
-                })
-            }
             var cube = this.positions[index]
             cube.colorIndex = this.currentColor
             event.currentTarget.style.backgroundColor = this.colors[cube.colorIndex]
@@ -132,13 +126,15 @@ export default {
                 c[cube.colorIndex]++
             })
             var flag = true
-            this.message = '出现错误的颜色有：'
+            this.message = ''
             for(var i=0; i<c.length; i++) {
                 if(c[i] != 9) {
-                    this.message = this.message + this.colorName[i] + ' '
+                    var div = '<div style="width:20px;height:20px;border: 1px solid #000;display:inline-flex;background-color:' + this.colors[i] + '"></div>'
+                    this.message = this.message + div
                     flag = false
                 }
             }
+            this.message += ''
             return flag
         },
 
@@ -168,8 +164,14 @@ export default {
         */
         submit() {
             if(!this.checkColors()) {
-                MessageBox.alert('错误的魔方排列！' + this.message, '错误提示', {
-                    confirmButtonText: '确定',
+                console.log(this.message)
+                this.$alert(this.message, 'CHECK', {
+                    confirmButtonText: 'OK',
+                    type: 'error',
+                    center: true,
+                    dangerouslyUseHTMLString: true,
+                    roundButton: true,
+                    showClose: false
                 })
                 return
             }
