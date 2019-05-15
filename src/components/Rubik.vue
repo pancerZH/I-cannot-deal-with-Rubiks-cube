@@ -1,19 +1,19 @@
 <template>
   <div>
     <el-col :span="5" :offset="1">
-      <el-slider v-model="speed" :min="100" :max="500" :step="100" :vertical="mobile" :height="height"></el-slider>
+      <el-slider v-model="speed" :min="100" :max="500" :step="100" :vertical="mobile" :height="height" :disabled="status"></el-slider>
     </el-col>
     <el-col :span="5" :offset="off">
-      <scanner :randomRotate=randomRotateLoading :autoRest=autoRestRunning />
-      <el-button type="primary" icon="el-icon-refresh" circle @click="randomRotate" :loading=randomRotateLoading :disabled=(randomRotateLoading||autoRestRunning)></el-button>
-      <el-button type="success" icon="el-icon-success" circle @click="autoRest" :loading=autoRestRunning :disabled=(randomRotateLoading||autoRestRunning)></el-button>
-      <el-button type="success" icon="el-icon-arrow-right" circle @click="autoRestOneStep" :disabled=(randomRotateLoading||autoRestRunning)></el-button>
+      <scanner :randomRotate=randomRotateLoading :autoRest=autoRestRunning :acceptString=acceptStringRunning @accept="statusChange" />
+      <el-button type="primary" icon="el-icon-refresh" circle @click="randomRotate" :loading=randomRotateLoading :disabled="status"></el-button>
+      <el-button type="success" icon="el-icon-success" circle @click="autoRest" :loading=autoRestRunning :disabled="status"></el-button>
+      <el-button type="success" icon="el-icon-arrow-right" circle @click="autoRestOneStep" :disabled="status"></el-button>
     </el-col>
   </div>
 </template>
 
 <script>
-import { init, randomRotate, autoRest, autoRestOneStep, randomRotateLoading, autoRestRunning, changeSpeed } from '../utils/Rubik.js'
+import { init, randomRotate, autoRest, autoRestOneStep, randomRotateLoading, autoRestRunning, changeSpeed, acceptStringRunning } from '../utils/Rubik.js'
 import scanner from './scanner'
 
 export default {
@@ -25,6 +25,7 @@ export default {
     return {
       randomRotateLoading: false,
       autoRestRunning: false,
+      acceptStringRunning: false,
       speed: 200,
       off: 10,
       mobile: false,
@@ -39,6 +40,9 @@ export default {
       this.height = '150px'
     }
     init(this._isMobile())
+    // LBBRRURRRDDRDDLDLDFFFFFFFFFUUUUUDUBLBDBLBBLLBLRURLBRUD
+    // LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
+    // DBULUFLUBLDFFRLBLRFFDRFLLUUBBRDDUURDFDDBLULRURDRBBRBFF
   },
 
   methods: {
@@ -69,6 +73,14 @@ export default {
       }
     },
 
+    async statusChange() {
+      this.acceptStringRunning = true
+      while(this.acceptStringRunning) {
+        await this.sleep(100)
+        this.acceptStringRunning = acceptStringRunning
+      }
+    },
+
     sleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
     },
@@ -76,6 +88,12 @@ export default {
     _isMobile() {
       let flag = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)
       return flag
+    }
+  },
+
+  computed: {
+    status() {
+      return (this.randomRotateLoading || this.autoRestRunning || this.acceptStringRunning)
     }
   },
 

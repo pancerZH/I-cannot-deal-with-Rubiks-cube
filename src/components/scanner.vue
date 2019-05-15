@@ -1,6 +1,6 @@
 <template>
     <div class="scanner">
-        <el-button icon="el-icon-s-grid" type="info" circle @click="showDialog" :disabled=(randomRotate||autoRest)></el-button>
+        <el-button icon="el-icon-s-grid" type="info" circle @click="showDialog" :disabled="(randomRotate || autoRest || acceptString)"></el-button>
         <el-dialog
             :visible.sync="dialogVisible"
             :width="width"
@@ -10,7 +10,7 @@
                     <div class="ytt-empty" />
                 </el-col>
                 <el-col v-for="num2 in [0,1,2]" :key="3 * num1 + num2 + 888" :span="2">
-                    <div class="ytt-orange" @click="changeColor(3 * num1 + num2, $event)"/>
+                    <div class="ytt-blue" @click="changeColor(3 * num1 + num2, $event)"/>
                 </el-col>
                 <el-col v-for="(num2, index) in [1,2,3]" :key="index*300+333" :span="2">
                     <div class="ytt-empty" />
@@ -21,7 +21,7 @@
             </el-row>
             <el-row v-for="(num1, index) in [3,4,5]" :key="index*400">
                 <el-col v-for="num2 in [0,1,2]" :key="3 * num1 + num2" :span="2">
-                    <div class="ytt-yellow" @click="changeColor(3 * num1 + num2, $event)" />
+                    <div class="ytt-orange" @click="changeColor(3 * num1 + num2, $event)" />
                 </el-col>
                 <el-col v-for="num2 in [0,1,2]" :key="3 * (num1+3) + num2" :span="2">
                     <div class="ytt-white" @click="changeColor(3 * (num1+3) + num2, $event)" />
@@ -30,7 +30,7 @@
                     <div class="ytt-red" @click="changeColor(3 * (num1+6) + num2, $event)" />
                 </el-col>
                 <el-col v-for="num2 in [0,1,2]" :key="3 * (num1+9) + num2" :span="2">
-                    <div class="ytt-blue" @click="changeColor(3 * (num1+9) + num2, $event)" />
+                    <div class="ytt-yellow" @click="changeColor(3 * (num1+9) + num2, $event)" />
                 </el-col>
             </el-row>
             <el-row v-for="(num1, index) in [3,4,5]" :key="index*600+122">
@@ -50,21 +50,18 @@
 </template>
 
 <script>
-import { acceptCubeString } from '../utils/Rubik.js'
+import { acceptCubeString, cubeParams } from '../utils/Rubik.js'
 export default {
     name: 'scanner',
-    props: ['randomRotate', 'autoRest'],
+    props: ['randomRotate', 'autoRest', 'acceptString'],
     data() {
         return  {
             positions: [],
-            colors: ['rgba(252, 244, 252, 1)', 'rgba(252, 236, 71, 1)',
-            'rgba(252, 138, 10, 1)', 'rgba(101, 157, 44, 1)',
-            'rgba(236, 56, 35, 1)', 'rgba(56, 148, 173, 1)'],
             dialogVisible: false,
-            colorName: ['white', 'yellow', 'orange', 'green', 'red', 'blue'],
+            colorName: ['red', 'orange', 'blue', 'green', 'white', 'yellow'],
             message: '',
             currentColor: 0,
-            width: '50%'
+            width: '50%',
         }
     },
 
@@ -78,17 +75,17 @@ export default {
         init() {
             for(var i=0; i<54; i++) {
                 var colorIndex
-                if(i < 9)  // orange
+                if(i < 9)  // blue - U
                     colorIndex = 2
-                else if(i >=9 && i < 18)  // yellow
+                else if(i >=9 && i < 18)  // orange - L
                     colorIndex = 1
-                else if(i >= 18 && i < 27)  // white
-                    colorIndex = 0
-                else if(i >= 27 && i < 36)  // red
+                else if(i >= 18 && i < 27)  // white - F
                     colorIndex = 4
-                else if(i >= 36 && i < 45)  // blue
+                else if(i >= 27 && i < 36)  // red - R
+                    colorIndex = 0
+                else if(i >= 36 && i < 45)  // yellow - B
                     colorIndex = 5
-                else  // green
+                else  // green - D
                     colorIndex = 3
                 var cube = {
                     'index': i,
@@ -108,9 +105,20 @@ export default {
         },
 
         changeColor(index, event) {
+            if(index===22 || index===4 || index===31) {  // 白色、蓝色、红色中心点用于定位，不允许改变
+                this.$alert('FIXED POINT', 'ALERT', {
+                    confirmButtonText: 'OK',
+                    type: 'warning',
+                    center: true,
+                    dangerouslyUseHTMLString: true,
+                    roundButton: true,
+                    showClose: false
+                })
+                return
+            }
             var cube = this.positions[index]
             cube.colorIndex = this.currentColor
-            event.currentTarget.style.backgroundColor = this.colors[cube.colorIndex]
+            event.currentTarget.style.backgroundColor = cubeParams.colors[cube.colorIndex]
         },
 
         pickColor(index, event) {
@@ -130,7 +138,7 @@ export default {
             this.message = ''
             for(var i=0; i<c.length; i++) {
                 if(c[i] != 9) {
-                    var div = '<div style="width:20px;height:20px;border: 1px solid #000;display:inline-flex;background-color:' + this.colors[i] + '"></div>'
+                    var div = '<div style="width:20px;height:20px;border: 1px solid #000;display:inline-flex;background-color:' + cubeParams.colors[i] + '"></div>'
                     this.message = this.message + div
                     flag = false
                 }
@@ -165,7 +173,6 @@ export default {
         */
         submit() {
             if(!this.checkColors()) {
-                console.log(this.message)
                 this.$alert(this.message, 'CHECK', {
                     confirmButtonText: 'OK',
                     type: 'error',
@@ -180,38 +187,39 @@ export default {
                 var cubeString = ''
                 var colorDict = {
                     2: 'U',
-                    4: 'R',
-                    0: 'F',
+                    0: 'R',
+                    4: 'F',
                     3: 'D',
                     1: 'L',
                     5: 'B'
                 }
-                for(var i=0; i<9; i++) {  // U
+                for(var i=0; i<9; i++) {  // 上
                     var index = this.positions[i].colorIndex
                     cubeString += colorDict[index]
                 }
-                for(var i=27; i<36; i++) {  // R
+                for(var i=27; i<36; i++) {  // 右
                     var index = this.positions[i].colorIndex
                     cubeString += colorDict[index]
                 }
-                for(var i=18; i<27; i++) {  // F
+                for(var i=18; i<27; i++) {  // 前
                     var index = this.positions[i].colorIndex
                     cubeString += colorDict[index]
                 }
-                for(var i=45; i<54; i++) {  // D
+                for(var i=45; i<54; i++) {  // 下
                     var index = this.positions[i].colorIndex
                     cubeString += colorDict[index]
                 }
-                for(var i=9; i<18; i++) {  // R
+                for(var i=9; i<18; i++) {  // 左
                     var index = this.positions[i].colorIndex
                     cubeString += colorDict[index]
                 }
-                for(var i=36; i<45; i++) {  // B
+                for(var i=36; i<45; i++) {  // 后
                     var index = this.positions[i].colorIndex
                     cubeString += colorDict[index]
                 }
                 this.dialogVisible = false
-                acceptCubeString(cubeString) 
+                this.$emit('accept')
+                acceptCubeString(cubeString)
             }
         },
 

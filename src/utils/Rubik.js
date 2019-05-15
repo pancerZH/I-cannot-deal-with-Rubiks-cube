@@ -11,7 +11,7 @@ var originPoint = null;
 var controller = null;
 var raycaster = null;
 var mouse = null;
-var cubeParams = {};
+export var cubeParams = {};
 var isRotating = false;
 var intersect = null;  // 碰撞光线穿过的元素
 var normalize = null;  // 触发平面法向量
@@ -36,6 +36,7 @@ var newSolution = true;
 var mobile = false;
 export var randomRotateLoading = false;
 export var autoRestRunning = false;
+export var acceptStringRunning = false;
 
 export function init(is_mobile) {
     originPoint = new THREE.Vector3(0, 0, 0);  //原点
@@ -73,9 +74,11 @@ export function init(is_mobile) {
         z: 0,
         num: 3,
         len: 50,
-        colors: ['rgba(236, 56, 35, 1)', 'rgba(252, 236, 71, 1)',
-            'rgba(252, 138, 10, 1)', 'rgba(101, 157, 44, 1)',
-            'rgba(252, 244, 252, 1)', 'rgba(56, 148, 173, 1)'],
+        colorName: ['red', 'orange', 'blue', 'green', 'white', 'yellow'],
+        // 右左上下前后
+        colors: ['rgba(236, 56, 35, 1)', 'rgba(252, 138, 10, 1)',
+            'rgba(56, 148, 173, 1)', 'rgba(101, 157, 44, 1)',
+            'rgba(252, 244, 252, 1)', 'rgba(252, 236, 71, 1)'],
         sequences: ['R', 'L', 'U', 'D', 'F', 'B']  //默认序列名
     };
 
@@ -247,11 +250,11 @@ export function acceptCubeString(cubeString) {
     x.parentNode.removeChild(x);
     init();
     speed = 50;
+    acceptStringRunning = true;
     runOperations(moves);
 }
 
 function runOperations(operations) {
-    console.log(operations)
     //解析命令
     operations = operations.split(' ');
     var arr = [];
@@ -285,6 +288,7 @@ function runOperations(operations) {
         stepCount++;
     });
     var count = stepCount;
+    autoRestRunning = true;
     runMethodAtNo(funcs, 0, 0, function () {
         var endTime = window.performance.now();
         console.log('end at:' + endTime);
@@ -318,11 +322,13 @@ function runMethodAtNo(arr,no,next) {
             arr[no](next);
             randomRotateLoading = false;
             autoRestRunning = false;
+            acceptStringRunning = false;
         }
         else {
             arr[no]();
             randomRotateLoading = false;
             autoRestRunning = false;
+            acceptStringRunning = false;
         }
     }
     else {
@@ -869,7 +875,6 @@ function rotateAroundWorldX(obj,rad) {
   
 //滑动操作魔方
 function moveCube(event) {
-    speed = oldSpeed;
     getIntersects(event);  // 在里面拿到了法向量
     if(intersect) {
       if(!isRotating && startPoint) {
@@ -878,6 +883,7 @@ function moveCube(event) {
         if(!movePoint.equals(startPoint)) {
           //和起始点不一样则意味着可以得到转动向量了
             isRotating = true;  //转动标识置为true
+            speed = oldSpeed;
             newSolution = true;
             var sub = movePoint.sub(startPoint);  //计算转动向量
             rotateMove(intersect, sub);

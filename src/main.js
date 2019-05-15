@@ -3,7 +3,7 @@
 const Vue = require('vue')
 const ElementUI = require('element-ui')
 const Three = require('three')
-const cube = require('cubejs')
+const Cube = require('cubejs')
 import App from './App.vue'
 
 //Vue.config.productionTip = false
