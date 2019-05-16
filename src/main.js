@@ -5,6 +5,7 @@ const ElementUI = require('element-ui')
 const Three = require('three')
 const Cube = require('cubejs')
 import App from './App.vue'
+import '../static/common.css'
 
 //Vue.config.productionTip = false
 Vue.prototype.$three = Three;

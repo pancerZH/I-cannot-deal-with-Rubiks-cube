@@ -114,8 +114,6 @@ export function init(is_mobile) {
     // 控制视角
     controller = new OrbitControls(camera, renderer.domElement);
     controller.target = new THREE.Vector3(0, 0, 0);
-    console.log(scene);
-    console.log(renderer)
 }
 
 export function changeSpeed(newSpeed) {
@@ -123,16 +121,17 @@ export function changeSpeed(newSpeed) {
 }
 
 function initThree() {
-    width = window.innerWidth * 0.95;
+    width = window.innerWidth;
     if (mobile)
-        height = window.innerHeight * 0.7;
-    else
         height = window.innerHeight * 0.8;
+    else
+        height = window.innerHeight;
     renderer = new THREE.WebGLRenderer({
-        antialias: true
+        antialias: true,
+        alpha: true,
     });
     renderer.setSize(width, height);
-    renderer.setClearColor(0xFFFFFF, 1.0);
+    renderer.setClearColor(0xFFFFFF, 0);
     document.body.appendChild(renderer.domElement);
 }
 
@@ -151,7 +150,7 @@ function initLight() {
     light = new THREE.AmbientLight(0x404040, 2);
     // scene.add(light);
 
-    var position = 150;
+    var position = 160;
     for (var i = 0; i < 6; i++) {
         var spotLight = new THREE.SpotLight(0xffffff, 1.5);
         switch(i) {
