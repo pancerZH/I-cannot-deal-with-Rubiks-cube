@@ -114,7 +114,8 @@ export function init(is_mobile) {
     // 控制视角
     controller = new OrbitControls(camera, renderer.domElement);
     controller.target = new THREE.Vector3(0, 0, 0);
-
+    console.log(scene);
+    console.log(renderer)
 }
 
 export function changeSpeed(newSpeed) {
@@ -147,8 +148,37 @@ function initScene() {
 }
 
 function initLight() {
-    light = new THREE.AmbientLight(0x404040, 5);
-    scene.add(light);
+    light = new THREE.AmbientLight(0x404040, 2);
+    // scene.add(light);
+
+    var position = 150;
+    for (var i = 0; i < 6; i++) {
+        var spotLight = new THREE.SpotLight(0xffffff, 1.5);
+        switch(i) {
+            case 0:
+                spotLight.position.set(0, position, 0);
+                break;
+            case 1:
+                spotLight.position.set(0, -position, 0);
+                break;
+            case 2:
+                spotLight.position.set(position, 0, 0);
+                break;
+            case 3:
+                spotLight.position.set(-position, 0, 0);
+                break;
+            case 4:
+                spotLight.position.set(0, 0, position);
+                break;
+            case 5:
+                spotLight.position.set(0, 0, -position);
+                break;
+            default:
+                break;
+        }
+        spotLight.target.position.set(0, 0, 0);
+        scene.add(spotLight);
+    }
 }
 
 function SimpleCube(x, y, z, num, len, colors) {
@@ -816,7 +846,7 @@ function initObj() {
     });
     minCubeIndex = min(ids).value;
 
-    //透明正方体
+    // 透明正方体
     var cubegeo = new THREE.BoxGeometry(150, 150, 150);
     var hex = 0x000000;
     for ( var i = 0; i < cubegeo.faces.length; i += 2 ) {
@@ -827,6 +857,17 @@ function initObj() {
     var cube = new THREE.Mesh(cubegeo, cubemat);
     cube.cubeType = 'coverCube';
     scene.add(cube);
+
+    // 地板
+    // var geometry = new THREE.PlaneBufferGeometry(100, 100);
+    // var planeMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
+    // var ground = new THREE.Mesh(geometry, planeMaterial);
+    // ground.position.set(0, -80, 0);
+    // ground.rotation.x = - Math.PI / 2;
+    // ground.scale.set(100, 100, 100);
+    // ground.castShadow = false;
+    // ground.receiveShadow = true;
+    // scene.add(ground);
 }
   
 function render() {
