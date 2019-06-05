@@ -3,6 +3,9 @@
     <el-col :span="5" :offset="1">
       <el-slider v-model="speed" :min="100" :max="500" :step="100" :vertical="mobile" :height="height" :disabled="status"></el-slider>
     </el-col>
+    <el-col :span="5" :offset="off" class="step">
+      <span v-transition class="msg">{{steps}}</span>
+    </el-col>
     <el-col :span="5" :offset="off">
       <scanner :randomRotate=randomRotateLoading :autoRest=autoRestRunning :acceptString=acceptStringRunning @accept="statusChange" />
       <el-button type="primary" icon="el-icon-refresh" circle @click="randomRotate" :loading=randomRotateLoading :disabled="status"></el-button>
@@ -13,7 +16,8 @@
 </template>
 
 <script>
-import { init, randomRotate, autoRest, autoRestOneStep, randomRotateLoading, autoRestRunning, changeSpeed, acceptStringRunning } from '../utils/Rubik.js'
+import { init, randomRotate, autoRest, autoRestOneStep, randomRotateLoading, autoRestRunning, changeSpeed, acceptStringRunning, stepCount } from '../utils/Rubik.js'
+import { initBackground } from '../utils/background.js'
 import scanner from './scanner'
 
 export default {
@@ -27,19 +31,23 @@ export default {
       autoRestRunning: false,
       acceptStringRunning: false,
       speed: 200,
-      off: 10,
+      off: 3,
       mobile: false,
-      height: ''
+      height: '',
+      steps: 0
     }
   },
 
   mounted() {
     if(this._isMobile()) {
-      this.off = 13
+      this.off = 4
       this.mobile = true
       this.height = '150px'
     }
     init(this._isMobile())
+    setInterval(this.updateTime, 100)
+    initBackground()
+
     // LBBRRURRRDDRDDLDLDFFFFFFFFFUUUUUDUBLBDBLBBLLBLRURLBRUD
     // LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
     // DBULUFLUBLDFFRLBLRFFDRFLLUUBBRDDUURDFDDBLULRURDRBBRBFF
@@ -88,6 +96,10 @@ export default {
     _isMobile() {
       let flag = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)
       return flag
+    },
+
+    updateTime() {
+      this.steps = stepCount
     }
   },
 
@@ -100,7 +112,7 @@ export default {
   watch: {
     speed() {
       changeSpeed(this.speed)
-    }
+    },
   }
 }
 </script>
@@ -112,5 +124,25 @@ export default {
 
 .el-button+.el-button {
   margin-left: 0
+}
+
+.step {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 40px;
+}
+
+.msg {
+    transition: all .3s ease;
+    height: 30px;
+    padding: 10px;
+    overflow: hidden;
+    color: blanchedalmond
+}
+
+.msg.v-enter, .msg.v-leave {
+    height: 0;
+    padding: 0 10px;
+    opacity: 0;
 }
 </style>

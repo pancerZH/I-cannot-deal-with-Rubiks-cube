@@ -24,7 +24,7 @@ var YLine = null;
 var YLineAd = null;
 var ZLine = null;
 var ZLineAd = null;
-var stepCount = 0;
+export var stepCount = 0;
 var minCubeIndex = null;
 var speed = 200;
 var oldSpeed = 200;
@@ -34,6 +34,7 @@ var answer = {};
 var stepBystep = [];
 var newSolution = true;
 var mobile = false;
+var start = true;
 export var randomRotateLoading = false;
 export var autoRestRunning = false;
 export var acceptStringRunning = false;
@@ -114,6 +115,14 @@ export function init(is_mobile) {
     // 控制视角
     controller = new OrbitControls(camera, renderer.domElement);
     controller.target = new THREE.Vector3(0, 0, 0);
+
+    window.addEventListener( 'resize', onWindowResize, false );
+}
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize( window.innerWidth, window.innerHeight );
 }
 
 export function changeSpeed(newSpeed) {
@@ -242,6 +251,8 @@ function faces(rgbaColor) {
 }
 
 export function acceptCubeString(cubeString) {
+    start = true;
+    stepCount = 0;
     cube = Cube.fromString(cubeString);
     var moves = Cube.inverse(cube.solve());
 
@@ -275,7 +286,7 @@ export function acceptCubeString(cubeString) {
     stepBystep = [];
     newSolution = true;
 
-    var x = document.getElementsByTagName("canvas")[0];
+    var x = document.getElementsByTagName("canvas")[1];
     x.parentNode.removeChild(x);
     init();
     speed = 50;
@@ -314,7 +325,6 @@ function runOperations(operations) {
     arr.forEach(move => {
         var f = answer[move];
         funcs.push(f);
-        stepCount++;
     });
     var count = stepCount;
     autoRestRunning = true;
@@ -327,6 +337,8 @@ function runOperations(operations) {
 }
 
 export function randomRotate(newSpeed) {
+    start = true;
+    stepCount = 0;
     randomRotateLoading = true;
     if(!isRotating) {
         speed = newSpeed;
@@ -371,6 +383,7 @@ function runMethodAtNo(arr,no,next) {
 }
 
 export async function autoRest(newSpeed) {
+    start = true;
     autoRestRunning = true;
     speed = newSpeed;
     oldSpeed = speed;
@@ -578,84 +591,84 @@ function getFaceColorByVector(cube, vector) {
   
 // 魔方基本公式 U、F、L、D、R 、B、u、f、l、d
 function U(next) {
-    stepCount++;
+    // stepCount++;
     var cube2 = getCubeByIndex(2);
     normalize = ZLine;
     rotateMove(cube2, XLineAd, next);
 }
 
 function u(next) {
-    stepCount++;
+    // stepCount++;
     var cube2 = getCubeByIndex(2);
     normalize = XLine;
     rotateMove(cube2, ZLineAd, next);
 }
 
 function F(next) {
-    stepCount++;
+    // stepCount++;
     var cube2 = getCubeByIndex(2);
     normalize = XLine;
     rotateMove(cube2, YLineAd, next);
 }
   
 function f(next) {
-    stepCount++;
+    // stepCount++;
     var cube2 = getCubeByIndex(2);
     normalize = YLine;
     rotateMove(cube2, XLineAd, next);
 }
   
 function L(next) {
-    stepCount++;
+    // stepCount++;
     var cube0 = getCubeByIndex(0);
     normalize = ZLine;
     rotateMove(cube0, YLineAd, next);
 }
   
 function l(next) {
-    stepCount++;
+    // stepCount++;
     var cube0 = getCubeByIndex(0);
     normalize = YLine;
     rotateMove(cube0, ZLineAd, next);
 }
   
 function D(next) {
-    stepCount++;
+    // stepCount++;
     var cube8 = getCubeByIndex(8);
     normalize = XLine;
     rotateMove(cube8, ZLineAd, next);
 }
   
 function d(next) {
-    stepCount++;
+    // stepCount++;
     var cube8 = getCubeByIndex(8);
     normalize = ZLine;
     rotateMove(cube8, XLineAd, next);
 }
   
 function R(next) {
-    stepCount++;
+    // stepCount++;
     var cube2 = getCubeByIndex(2);
     normalize = YLine;
     rotateMove(cube2, ZLineAd, next);
 }
   
 function r(next) {
-    stepCount++;
+    // stepCount++;
     var cube2 = getCubeByIndex(2);
     normalize = ZLine;
     rotateMove(cube2, YLineAd, next);
 }
   
 function B(next) {
-    stepCount++;
+    // stepCount++;
     var cube20 = getCubeByIndex(20);
     normalize = XLine;
     rotateMove(cube20, YLine, next);
 }
   
 function b(next) {
-    stepCount++;
+    // stepCount++;
     var cube20 = getCubeByIndex(20);
     normalize = XLine;
     rotateMove(cube20, YLineAd, next);
@@ -676,6 +689,7 @@ function rotateMove(target,vector,next) {
     var direction = getDirection(vector);  //获得方向
     var elements = getBoxs(target, direction);
     findWhichOperation(direction, elements);
+    stepCount++;
     window.requestAnimFrame(function (timestamp) {
         rotateAnimation(elements, direction, timestamp, 0, null, next);
     });
@@ -926,6 +940,10 @@ function moveCube(event) {
             speed = oldSpeed;
             newSolution = true;
             var sub = movePoint.sub(startPoint);  //计算转动向量
+            if (start) {
+                start = false;
+                stepCount = 0;
+            }
             rotateMove(intersect, sub);
         }
       }
@@ -1246,7 +1264,7 @@ function startCube(event) {
 function getIntersects(event) {
     //  触摸事件和鼠标事件获得坐标的方式有区别
     if (event.touches) {
-        var offset = document.getElementsByTagName('canvas')[0].offsetTop
+        var offset = document.getElementsByTagName('canvas')[1].offsetTop
         var touch = event.touches[0];
         mouse.x = (touch.clientX / width) * 2 - 1;
         mouse.y = -((touch.clientY - offset) / height) * 2 + 1;
