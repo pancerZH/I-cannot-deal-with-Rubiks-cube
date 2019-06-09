@@ -38,6 +38,16 @@ export default {
     }
   },
 
+  created() {
+    var _this = this;
+    document.onkeydown = function(e) {
+        let key = window.event.keyCode
+        if (key === 32 && !_this.status) {
+            _this.autoRestOneStep()
+        }
+    }
+  },
+
   mounted() {
     if(this._isMobile()) {
       this.off = 4
