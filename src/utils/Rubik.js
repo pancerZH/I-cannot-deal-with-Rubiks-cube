@@ -35,6 +35,7 @@ var stepBystep = [];
 var newSolution = true;
 var mobile = false;
 var start = true;
+var canvasOff = 200;
 export var randomRotateLoading = false;
 export var autoRestRunning = false;
 export var acceptStringRunning = false;
@@ -131,17 +132,21 @@ export function changeSpeed(newSpeed) {
 
 function initThree() {
     width = window.innerWidth;
-    if (mobile)
-        height = window.innerHeight * 0.8;
-    else
+    if (mobile) {
+        height = window.innerHeight * 0.75;
+        document.getElementById('canvas3d').style.marginTop = String(canvasOff)+'px';
+    }
+    else {
         height = window.innerHeight;
+        document.getElementById('canvas3d').style.marginTop = '100px';
+    }
     renderer = new THREE.WebGLRenderer({
         antialias: true,
         alpha: true,
     });
     renderer.setSize(width, height);
     renderer.setClearColor(0xFFFFFF, 0);
-    document.body.appendChild(renderer.domElement);
+    document.getElementById('canvas3d').appendChild(renderer.domElement);
 }
 
 function initCamera() {
@@ -209,7 +214,7 @@ function SimpleCube(x, y, z, num, len, colors) {
             //依次计算各个小方块中心点坐标
             cube.position.x = (leftUpX + len / 2) + (j % num) * len;
             cube.position.y = (leftUpY - len / 2) - parseInt(j / num) * len;
-            cube.position.z = (leftUpZ - len / 2) - i * len;
+            cube.position.z = (leftUpZ - len / 2) - i * len ;
             cubes.push(cube);
         }
     }
@@ -290,6 +295,47 @@ export function acceptCubeString(cubeString) {
     x.parentNode.removeChild(x);
     init();
     speed = 50;
+    acceptStringRunning = true;
+    runOperations(moves);
+}
+
+export function acceptMethod(moves, newSpeed) {
+    start = true;
+    stepCount = 0;
+    camera = null;
+    scene = null;
+    light = null;
+    cubes = [];
+    renderer = null;
+    width = 0;
+    height = 0;
+    originPoint = null;
+    controller = null;
+    raycaster = null;
+    mouse = null;
+    cubeParams = {};
+    isRotating = false;
+    intersect = null;  // 碰撞光线穿过的元素
+    normalize = null;  // 触发平面法向量
+    startPoint = null;  // 触发点
+    movePoint = null;
+    initStatus = [];
+    XLine = null;  // x轴正方向
+    XLineAd = null;  // x轴负方向
+    YLine = null;
+    YLineAd = null;
+    ZLine = null;
+    ZLineAd = null;
+    stepCount = 0;
+    minCubeIndex = null;
+    answer = {};
+    stepBystep = [];
+    newSolution = true;
+
+    var x = document.getElementsByTagName("canvas")[1];
+    x.parentNode.removeChild(x);
+    init();
+    speed = newSpeed;
     acceptStringRunning = true;
     runOperations(moves);
 }
@@ -416,8 +462,8 @@ export async function autoRestOneStep(newSpeed) {
         var rubik = getRubikSequence();
         cube.init(Cube.fromString(rubik));
         if(cube.isSolved()) {
-          autoRestRunning = false;
-          return;
+            autoRestRunning = false;
+            return;
         }
         // Cube.initSolver();
         var moves = await cube.solve();
@@ -1267,7 +1313,7 @@ function getIntersects(event) {
         var offset = document.getElementsByTagName('canvas')[1].offsetTop
         var touch = event.touches[0];
         mouse.x = (touch.clientX / width) * 2 - 1;
-        mouse.y = -((touch.clientY - offset) / height) * 2 + 1;
+        mouse.y = -((touch.clientY - offset - canvasOff) / height) * 2 + 1;
     }
     else {
         mouse.x = (event.offsetX / width) * 2 - 1;
