@@ -343,7 +343,7 @@ export function randomRotate(newSpeed) {
     if(!isRotating) {
         speed = newSpeed;
         oldSpeed = speed;
-        var stepNum = parseInt(20 * Math.random());
+        var stepNum = parseInt(40 * Math.random());
         if(stepNum < 20) {
           stepNum = 20;  // 至少动20步
         }
