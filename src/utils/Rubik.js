@@ -299,6 +299,44 @@ export function acceptCubeString(cubeString) {
     runOperations(moves);
 }
 
+export function clearAll() {
+    start = true;
+    stepCount = 0;
+    camera = null;
+    scene = null;
+    light = null;
+    cubes = [];
+    renderer = null;
+    width = 0;
+    height = 0;
+    originPoint = null;
+    controller = null;
+    raycaster = null;
+    mouse = null;
+    cubeParams = {};
+    isRotating = false;
+    intersect = null;  // 碰撞光线穿过的元素
+    normalize = null;  // 触发平面法向量
+    startPoint = null;  // 触发点
+    movePoint = null;
+    initStatus = [];
+    XLine = null;  // x轴正方向
+    XLineAd = null;  // x轴负方向
+    YLine = null;
+    YLineAd = null;
+    ZLine = null;
+    ZLineAd = null;
+    stepCount = 0;
+    minCubeIndex = null;
+    answer = {};
+    stepBystep = [];
+    newSolution = true;
+
+    var x = document.getElementsByTagName("canvas")[1];
+    x.parentNode.removeChild(x);
+    init();
+}
+
 export function acceptMethod(moves, newSpeed) {
     start = true;
     stepCount = 0;
@@ -468,6 +506,51 @@ export async function autoRestOneStep(newSpeed) {
         // Cube.initSolver();
         var moves = await cube.solve();
         moves = moves.split(' ');
+      
+        //解析命令
+        var reg1 = /^[a-zA-Z]{1}$/;  //纯字母
+        var reg2 = /^[a-zA-Z]{1}[2]{1}$/;  //字母+2
+        var reg3 = /^[a-zA-Z]{1}'$/;  //字母+单引号
+        moves.forEach(move => {
+            if (reg3.test(move)) {
+                var temp = move.substring(0, 1);
+                stepBystep.push(temp.toLowerCase());
+            }
+            else if (reg2.test(move)) {
+                var temp = move.substring(0, 1);
+                stepBystep.push(temp);
+                stepBystep.push(temp);
+            }
+            else if (reg1.test(move)) {
+                stepBystep.push(move);
+            }
+            else {
+                console.log('出错啦');
+            }
+        });
+
+        newSolution = false;
+    }
+
+    var f = answer[stepBystep.shift()];
+    if(f) {
+        f(0);
+    }
+    else {
+        newSolution = true;
+    }
+    autoRestRunning = false;
+}
+
+export async function autoRunOneStep(methodMoves, newSpeed, currentStep) {
+    autoRestRunning = true;
+    speed = newSpeed;
+    oldSpeed = speed;
+    if(newSolution && currentStep === 0) {
+        stepBystep = [];
+
+        // Cube.initSolver();
+        var moves = methodMoves.split(' ');
       
         //解析命令
         var reg1 = /^[a-zA-Z]{1}$/;  //纯字母

@@ -38,7 +38,7 @@
 </template>
 
 <script>
-import { init, randomRotate, autoRest, autoRestOneStep, randomRotateLoading, autoRestRunning, changeSpeed, acceptStringRunning, stepCount, acceptMethod } from '../utils/Rubik.js'
+import { init, randomRotate, autoRest, autoRestOneStep, randomRotateLoading, autoRestRunning, changeSpeed, acceptStringRunning, stepCount, acceptMethod, clearAll, autoRunOneStep } from '../utils/Rubik.js'
 import { initBackground } from '../utils/background.js'
 import scanner from './scanner'
 
@@ -107,9 +107,8 @@ export default {
       this.width = String(window.innerWidth / 2) + 'px'
     }
     else {
-      this.width = String(window.innerWidth / 10) + 'px'
+      this.width = String(window.innerWidth / 8) + 'px'
     }
-    console.log(this.width)
     init(this._isMobile())
     setInterval(this.updateTime, 100)
     initBackground()
@@ -121,26 +120,97 @@ export default {
 
   methods: {
     async randomRotate() {
-      this.randomRotateLoading = true
-      randomRotate(this.speed)
-      while(this.randomRotateLoading) {
-        await this.sleep(this.speed*2)
-        this.randomRotateLoading = randomRotateLoading
+      if(this.play === '自由模式') {
+        this.randomRotateLoading = true
+        randomRotate(this.speed)
+        while(this.randomRotateLoading) {
+          await this.sleep(this.speed*2)
+          this.randomRotateLoading = randomRotateLoading
+        }
+      }
+      else if(this.play === '练习模式') {
+        clearAll()
       }
     },
 
     async autoRest() {
-      this.autoRestRunning = true
-      autoRest(this.speed)
-      while(this.autoRestRunning) {
-        await this.sleep(this.speed*2)
-        this.autoRestRunning = autoRestRunning
+      if(this.play === '自由模式') {
+        this.autoRestRunning = true
+        autoRest(this.speed)
+        while(this.autoRestRunning) {
+          await this.sleep(this.speed*2)
+          this.autoRestRunning = autoRestRunning
+        }
+      }
+      else if(this.play === '练习模式') {
+        switch(this.method) {
+          case '六面回字':
+            acceptMethod("U' D F' B L R' U' D", this.speed)
+            break
+          case '四色回字':
+            acceptMethod("B2 L R B L2 B F D U' B F R2 F' L R", this.speed)
+            break
+          case '对称棋盘':
+            acceptMethod("L2 R2 F2 B2 U2 D2", this.speed)
+            break
+          case '循环棋盘':
+            acceptMethod("D2 F2 U'B2 F2 L2 R2 D R' B F D'U L R D2 U2 F'U2", this.speed)
+            break
+          case '六面十字':
+            acceptMethod("B2 F' L2 R2 D2 B2 F2 L2 R2 U2 F'", this.speed)
+            break
+          case '四面十字':
+            acceptMethod("D F2 R2 F2 D' U R2 F2 R2 U'", this.speed)
+            break
+          case '六面彩条':
+            acceptMethod("F2 U2 F2 B2 U2 F B", this.speed)
+            break
+          case '六面三条':
+            acceptMethod("U2 L2 U2 L2 U2 L2 U2 R2 U2 R2 U2 R2 U D L2 R2", this.speed)
+            break
+          default:
+            return '请选择样式'
+        }
+        this.playMethod()
       }
     },
 
     async autoRestOneStep() {
-      this.autoRestRunning = true
-      autoRestOneStep(this.speed)
+      if(this.play === '自由模式') {
+        this.autoRestRunning = true
+        autoRestOneStep(this.speed)
+      }
+      else if(this.play === '练习模式') {
+        switch(this.method) {
+          case '六面回字':
+            autoRunOneStep("U' D F' B L R' U' D", this.speed, this.steps)
+            break
+          case '四色回字':
+            autoRunOneStep("B2 L R B L2 B F D U' B F R2 F' L R", this.speed, this.steps)
+            break
+          case '对称棋盘':
+            autoRunOneStep("L2 R2 F2 B2 U2 D2", this.speed, this.steps)
+            break
+          case '循环棋盘':
+            autoRunOneStep("D2 F2 U'B2 F2 L2 R2 D R' B F D'U L R D2 U2 F'U2", this.speed, this.steps)
+            break
+          case '六面十字':
+            autoRunOneStep("B2 F' L2 R2 D2 B2 F2 L2 R2 U2 F'", this.speed, this.steps)
+            break
+          case '四面十字':
+            autoRunOneStep("D F2 R2 F2 D' U R2 F2 R2 U'", this.speed, this.steps)
+            break
+          case '六面彩条':
+            autoRunOneStep("F2 U2 F2 B2 U2 F B", this.speed, this.steps)
+            break
+          case '六面三条':
+            autoRunOneStep("U2 L2 U2 L2 U2 L2 U2 R2 U2 R2 U2 R2 U D L2 R2", this.speed, this.steps)
+            break
+          default:
+            return '请选择样式'
+        }
+      }
+
       while(this.autoRestRunning) {
         await this.sleep(this.speed*1.5)
         this.autoRestRunning = autoRestRunning
@@ -151,6 +221,14 @@ export default {
       this.acceptStringRunning = true
       while(this.acceptStringRunning) {
         await this.sleep(100)
+        this.acceptStringRunning = acceptStringRunning
+      }
+    },
+
+    async playMethod() {
+      this.acceptStringRunning = true
+      while(this.acceptStringRunning) {
+        await this.sleep(this.speed*1.5)
         this.acceptStringRunning = acceptStringRunning
       }
     },
@@ -172,6 +250,8 @@ export default {
     },
 
     changePlay() {
+      if(this.status)
+        return
       if(this.play === '自由模式')
         this.play = '练习模式'
       else
@@ -179,6 +259,8 @@ export default {
     },
 
     selectMethod() {
+      if(this.status)
+        return
       this.dialogVisible = true
     }
   },
@@ -224,6 +306,7 @@ export default {
         default:
           return '请选择样式'
       }
+      this.playMethod()
     }
   }
 }
@@ -245,20 +328,22 @@ export default {
 }
 
 .msg {
-    transition: all .3s ease;
-    height: 30px;
-    padding: 10px;
-    overflow: hidden;
-    color: blanchedalmond
+  transition: all .3s ease;
+  height: 30px;
+  padding: 10px;
+  overflow: hidden;
+  color: blanchedalmond;
 }
 
 .msg.v-enter, .msg.v-leave {
-    height: 0;
-    padding: 0 10px;
-    opacity: 0;
+  height: 0;
+  padding: 0 10px;
+  opacity: 0;
 }
 
 .txt {
-  z-index: 9
+  z-index: 9;
+  -webkit-user-select: none;
+  cursor: pointer;
 }
 </style>
