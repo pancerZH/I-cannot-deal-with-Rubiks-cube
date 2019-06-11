@@ -154,7 +154,7 @@ export default {
             acceptMethod("L2 R2 F2 B2 U2 D2", this.speed)
             break
           case '循环棋盘':
-            acceptMethod("D2 F2 U'B2 F2 L2 R2 D R' B F D'U L R D2 U2 F'U2", this.speed)
+            acceptMethod("D2 F2 U' B2 F2 L2 R2 D R' B F D' U L R D2 U2 F' U2", this.speed)
             break
           case '六面十字':
             acceptMethod("B2 F' L2 R2 D2 B2 F2 L2 R2 U2 F'", this.speed)
@@ -192,7 +192,7 @@ export default {
             autoRunOneStep("L2 R2 F2 B2 U2 D2", this.speed, this.steps)
             break
           case '循环棋盘':
-            autoRunOneStep("D2 F2 U'B2 F2 L2 R2 D R' B F D'U L R D2 U2 F'U2", this.speed, this.steps)
+            autoRunOneStep("D2 F2 U' B2 F2 L2 R2 D R' B F D' U L R D2 U2 F' U2", this.speed, this.steps)
             break
           case '六面十字':
             autoRunOneStep("B2 F' L2 R2 D2 B2 F2 L2 R2 U2 F'", this.speed, this.steps)
@@ -289,7 +289,7 @@ export default {
           acceptMethod("L2 R2 F2 B2 U2 D2", this.speed)
           break
         case '循环棋盘':
-          acceptMethod("D2 F2 U'B2 F2 L2 R2 D R' B F D'U L R D2 U2 F'U2", this.speed)
+          acceptMethod("D2 F2 U' B2 F2 L2 R2 D R' B F D' U L R D2 U2 F' U2", this.speed)
           break
         case '六面十字':
           acceptMethod("B2 F' L2 R2 D2 B2 F2 L2 R2 U2 F'", this.speed)

@@ -41,48 +41,53 @@ export var autoRestRunning = false;
 export var acceptStringRunning = false;
 
 export function init(is_mobile) {
-    originPoint = new THREE.Vector3(0, 0, 0);  //原点
-    XLine = new THREE.Vector3(1, 0, 0);
-    XLineAd = new THREE.Vector3(-1, 0, 0);
-    YLine = new THREE.Vector3(0, 1, 0);
-    YLineAd = new THREE.Vector3(0, -1, 0);
-    ZLine = new THREE.Vector3(0, 0, 1);
-    ZLineAd = new THREE.Vector3(0, 0, -1);
+    if (originPoint === null) {
+        originPoint = new THREE.Vector3(0, 0, 0);  //原点
+        XLine = new THREE.Vector3(1, 0, 0);
+        XLineAd = new THREE.Vector3(-1, 0, 0);
+        YLine = new THREE.Vector3(0, 1, 0);
+        YLineAd = new THREE.Vector3(0, -1, 0);
+        ZLine = new THREE.Vector3(0, 0, 1);
+        ZLineAd = new THREE.Vector3(0, 0, -1);
 
-    raycaster = new THREE.Raycaster();  // 光线碰撞传感器
-    mouse = new THREE.Vector2();  // 储存鼠标坐标
+        raycaster = new THREE.Raycaster();  // 光线碰撞传感器
+        mouse = new THREE.Vector2();  // 储存鼠标坐标
 
-    Cube = require('cubejs');
-    cube = new Cube();
-    Cube.initSolver();
-    answer = {
-        'R': R,
-        'U': U,
-        'F': F,
-        'B': B,
-        'L': L,
-        'D': D,
-        'r': r,
-        'u': u,
-        'f': f,
-        'b': b,
-        'l': l,
-        'd': d
-    };
+        answer = {
+            'R': R,
+            'U': U,
+            'F': F,
+            'B': B,
+            'L': L,
+            'D': D,
+            'r': r,
+            'u': u,
+            'f': f,
+            'b': b,
+            'l': l,
+            'd': d
+        };
+    
+        cubeParams = {
+            x: 0,
+            y: 0,
+            z: 0,
+            num: 3,
+            len: 50,
+            colorName: ['red', 'orange', 'blue', 'green', 'white', 'yellow'],
+            // 右左上下前后
+            colors: ['rgba(236, 56, 35, 1)', 'rgba(252, 138, 10, 1)',
+                'rgba(56, 148, 173, 1)', 'rgba(101, 157, 44, 1)',
+                'rgba(252, 244, 252, 1)', 'rgba(252, 236, 71, 1)'],
+            sequences: ['R', 'L', 'U', 'D', 'F', 'B']  //默认序列名
+        };
+    }
 
-    cubeParams = {
-        x: 0,
-        y: 0,
-        z: 0,
-        num: 3,
-        len: 50,
-        colorName: ['red', 'orange', 'blue', 'green', 'white', 'yellow'],
-        // 右左上下前后
-        colors: ['rgba(236, 56, 35, 1)', 'rgba(252, 138, 10, 1)',
-            'rgba(56, 148, 173, 1)', 'rgba(101, 157, 44, 1)',
-            'rgba(252, 244, 252, 1)', 'rgba(252, 236, 71, 1)'],
-        sequences: ['R', 'L', 'U', 'D', 'F', 'B']  //默认序列名
-    };
+    if (Cube === null) {
+        Cube = require('cubejs');
+        cube = new Cube();
+        Cube.initSolver();
+    }
 
     window.requestAnimFrame = (function () {
         return window.requestAnimationFrame ||
@@ -117,7 +122,7 @@ export function init(is_mobile) {
     controller = new OrbitControls(camera, renderer.domElement);
     controller.target = new THREE.Vector3(0, 0, 0);
 
-    window.addEventListener( 'resize', onWindowResize, false );
+    window.addEventListener('resize', onWindowResize, false);
 }
 
 function onWindowResize() {
@@ -140,10 +145,12 @@ function initThree() {
         height = window.innerHeight;
         document.getElementById('canvas3d').style.marginTop = '100px';
     }
-    renderer = new THREE.WebGLRenderer({
-        antialias: true,
-        alpha: true,
-    });
+    if (renderer === null) {
+        renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: true,
+        });
+    }
     renderer.setSize(width, height);
     renderer.setClearColor(0xFFFFFF, 0);
     document.getElementById('canvas3d').appendChild(renderer.domElement);
@@ -261,11 +268,15 @@ export function acceptCubeString(cubeString) {
     cube = Cube.fromString(cubeString);
     var moves = Cube.inverse(cube.solve());
 
+    if (scene != null) {
+        scene.remove(cubes);
+    }
+
     camera = null;
     scene = null;
     light = null;
     cubes = [];
-    renderer = null;
+    // renderer = null;
     width = 0;
     height = 0;
     originPoint = null;
@@ -300,13 +311,16 @@ export function acceptCubeString(cubeString) {
 }
 
 export function clearAll() {
+    if (scene != null) {
+        scene.remove(cubes);
+    }
     start = true;
     stepCount = 0;
     camera = null;
     scene = null;
     light = null;
     cubes = [];
-    renderer = null;
+    // renderer = null;
     width = 0;
     height = 0;
     originPoint = null;
@@ -344,7 +358,7 @@ export function acceptMethod(moves, newSpeed) {
     scene = null;
     light = null;
     cubes = [];
-    renderer = null;
+    // renderer = null;
     width = 0;
     height = 0;
     originPoint = null;
