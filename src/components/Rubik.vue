@@ -181,6 +181,7 @@ export default {
         autoRestOneStep(this.speed)
       }
       else if(this.play === '练习模式') {
+        this.autoRestRunning = true
         switch(this.method) {
           case '六面回字':
             autoRunOneStep("U' D F' B L R' U' D", this.speed, this.steps)
