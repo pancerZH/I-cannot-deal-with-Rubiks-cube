@@ -126,9 +126,10 @@ export function init(is_mobile) {
 }
 
 function onWindowResize() {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize( window.innerWidth, window.innerHeight );
+    // console.log("size change");
+    // camera.aspect = window.innerWidth / window.innerHeight;
+    // camera.updateProjectionMatrix();
+    // renderer.setSize( window.innerWidth, window.innerHeight );
 }
 
 export function changeSpeed(newSpeed) {
